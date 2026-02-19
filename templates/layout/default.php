@@ -44,8 +44,8 @@ $currentUser = $currentUser ?? null;
             margin-top: .5rem;
         }
         .sidebar-badge {
-            font-size: .65rem;
-            padding: .2em .45em;
+            font-size: .75rem;
+            padding: .25em .5em;
         }
         .content-wrapper {
             margin-left: var(--sidebar-width);
@@ -67,9 +67,11 @@ $currentUser = $currentUser ?? null;
     <div class="d-flex">
         <!-- Sidebar -->
         <nav class="sidebar d-flex flex-column flex-shrink-0 p-3 bg-dark">
-            <a href="<?= $this->Url->build('/') ?>" class="d-flex align-items-center mb-3 text-white text-decoration-none">
-                <i class="bi bi-building me-2 fs-4"></i>
-                <span class="fs-5 fw-semibold">SGI</span>
+            <a href="<?= $this->Url->build('/') ?>" class="d-flex align-items-center justify-content-center mb-2 text-white text-decoration-none">
+                <div class="rounded-circle d-flex align-items-center justify-content-center me-2" style="width:42px;height:42px;flex-shrink:0;background-color:#469D61;">
+                    <i class="bi bi-building fs-4"></i>
+                </div>
+                <span class="fs-2 fw-bold">SGI</span>
             </a>
             <hr class="text-secondary my-1">
             <ul class="nav nav-pills flex-column">
@@ -77,7 +79,7 @@ $currentUser = $currentUser ?? null;
                 <li class="nav-item">
                     <?= $this->Html->link(
                         '<i class="bi bi-receipt me-2"></i>Facturas' .
-                        (!empty($sidebarCounters) ? ' <span class="badge bg-primary sidebar-badge ms-auto">' . array_sum($sidebarCounters) . '</span>' : ''),
+                        (!empty($sidebarCounters) ? ' <span class="badge bg-success sidebar-badge ms-auto">' . array_sum($sidebarCounters) . '</span>' : ''),
                         ['controller' => 'Invoices', 'action' => 'index'],
                         ['class' => 'nav-link d-flex align-items-center', 'escape' => false]
                     ) ?>
@@ -136,21 +138,21 @@ $currentUser = $currentUser ?? null;
             </ul>
 
             <!-- User info footer -->
-            <div class="sidebar-footer">
+            <div class="sidebar-footer d-flex align-items-center justify-content-between">
                 <?php if ($currentUser): ?>
-                    <div class="d-flex align-items-center text-white-50 mb-2">
-                        <div class="bg-secondary rounded-circle d-flex align-items-center justify-content-center me-2" style="width:32px;height:32px;flex-shrink:0;">
-                            <i class="bi bi-person text-white" style="font-size:.85rem;"></i>
+                    <div class="d-flex align-items-center text-white-50">
+                        <div class="rounded-circle d-flex align-items-center justify-content-center me-2" style="width:36px;height:36px;flex-shrink:0;background-color:#469D61;">
+                            <i class="bi bi-person text-white" style="font-size:1.1rem;"></i>
                         </div>
                         <div class="overflow-hidden">
                             <div class="text-white small fw-semibold text-truncate"><?= h($currentUser->full_name) ?></div>
-                            <div class="text-white-50" style="font-size:.7rem;"><?= h($currentUser->role->name ?? '') ?></div>
+                            <div class="text-white-50" style="font-size:.8rem;"><?= h($currentUser->role->name ?? '') ?></div>
                         </div>
                     </div>
                     <?= $this->Html->link(
-                        '<i class="bi bi-box-arrow-right me-2"></i>Cerrar Sesión',
+                        '<i class="bi bi-box-arrow-right"></i>',
                         ['controller' => 'Users', 'action' => 'logout'],
-                        ['class' => 'btn btn-outline-secondary btn-sm w-100', 'escape' => false]
+                        ['class' => 'btn btn-outline-secondary btn-sm', 'escape' => false]
                     ) ?>
                 <?php endif; ?>
             </div>
@@ -167,6 +169,8 @@ $currentUser = $currentUser ?? null;
             </main>
         </div>
     </div>
+
+    <?= $this->element('copcsa') ?>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
