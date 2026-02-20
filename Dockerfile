@@ -41,9 +41,9 @@ RUN cp config/app_local.example.php config/app_local.php
 
 # Create directories and set permissions
 RUN mkdir -p tmp/cache/models tmp/cache/persistent tmp/cache/views \
-    tmp/debug_kit tmp/sessions tmp/tests logs webroot/files \
-    && chown -R www-data:www-data tmp logs webroot/files \
-    && chmod -R 775 tmp logs webroot/files
+    tmp/debug_kit tmp/sessions tmp/tests logs webroot/files webroot/uploads \
+    && chown -R www-data:www-data tmp logs webroot/files webroot/uploads \
+    && chmod -R 775 tmp logs webroot/files webroot/uploads
 
 # Nginx and PHP config
 COPY docker/nginx/default.conf /etc/nginx/sites-available/default

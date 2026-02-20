@@ -8,6 +8,8 @@ services:
       - "80:80"
     volumes:
       - app_files:/var/www/html/webroot/files
+      - app_uploads:/var/www/html/webroot/uploads
 
 volumes:
   app_files:
+  app_uploads:
