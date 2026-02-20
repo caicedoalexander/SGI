@@ -107,6 +107,10 @@ $canView = function (string $module) use ($userPermissions): bool {
             ['module' => 'expense_types', 'label' => 'Tipos de Gasto', 'icon' => 'bi-tags', 'controller' => 'ExpenseTypes', 'color' => 'dark'],
             ['module' => 'cost_centers', 'label' => 'Centros de Costos', 'icon' => 'bi-diagram-3', 'controller' => 'CostCenters', 'color' => 'dark'],
             ['module' => 'positions', 'label' => 'Cargos', 'icon' => 'bi-briefcase', 'controller' => 'Positions', 'color' => 'dark'],
+            ['module' => 'employee_statuses', 'label' => 'Estados de Empleado', 'icon' => 'bi-card-checklist', 'controller' => 'EmployeeStatuses', 'color' => 'dark'],
+            ['module' => 'marital_statuses', 'label' => 'Estados Civiles', 'icon' => 'bi-heart', 'controller' => 'MaritalStatuses', 'color' => 'dark'],
+            ['module' => 'education_levels', 'label' => 'Niveles Educativos', 'icon' => 'bi-mortarboard', 'controller' => 'EducationLevels', 'color' => 'dark'],
+            ['module' => 'default_folders', 'label' => 'Carpetas por Defecto', 'icon' => 'bi-folder', 'controller' => 'DefaultFolders', 'color' => 'dark'],
             ['module' => 'users', 'label' => 'Usuarios', 'icon' => 'bi-people', 'controller' => 'Users', 'color' => 'info'],
             ['module' => 'roles', 'label' => 'Roles', 'icon' => 'bi-shield-lock', 'controller' => 'Roles', 'color' => 'info'],
         ];
