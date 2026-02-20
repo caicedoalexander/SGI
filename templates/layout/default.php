@@ -55,9 +55,9 @@ $userPermissions = $userPermissions ?? [];
             min-height: 100vh;
         }
         .sidebar-footer {
-            margin-top: auto;
+            margin-top: 1rem;
             border-top: 1px solid rgba(255,255,255,.1);
-            padding: .75rem 1rem;
+            padding: .75rem 0;
         }
         /* Row click */
         tr.clickable-row { cursor: pointer; transition: background .15s ease; }
