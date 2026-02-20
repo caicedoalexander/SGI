@@ -20,7 +20,7 @@ class UsersController extends AppController
 
         $result = $this->Authentication->getResult();
         if ($result && $result->isValid()) {
-            $redirect = $this->request->getQuery('redirect', ['controller' => 'Invoices', 'action' => 'index']);
+            $redirect = $this->request->getQuery('redirect', ['controller' => 'Dashboard', 'action' => 'index']);
             return $this->redirect($redirect);
         }
 

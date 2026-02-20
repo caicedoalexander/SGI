@@ -14,12 +14,11 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     <style>
         body {
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
             min-height: 100vh;
         }
     </style>
 </head>
-<body class="d-flex align-items-center justify-content-center min-vh-100">
+<body class="d-flex align-items-center justify-content-center min-vh-100 bg-dark">
     <div class="container" style="max-width: 420px;">
         <?= $this->Flash->render() ?>
         <?= $this->fetch('content') ?>

@@ -23,7 +23,7 @@ $pipelineBadges = [
     ) ?>
 </div>
 
-<div class="card border-0">
+<div class="card border-0"> 
     <div class="table-responsive border-0">
         <table class="table table-hover mb-0">
             <thead class="table-light">

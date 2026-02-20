@@ -20,6 +20,12 @@ class AuthorizationService
         'users' => 'Usuarios',
         'roles' => 'Roles',
         'approvers' => 'Aprobadores',
+        'employees' => 'Empleados',
+        'employee_statuses' => 'Estados de Empleado',
+        'marital_statuses' => 'Estados Civiles',
+        'education_levels' => 'Niveles Educativos',
+        'positions' => 'Cargos',
+        'default_folders' => 'Carpetas por Defecto',
     ];
 
     private array $cache = [];

@@ -83,6 +83,13 @@ $userPermissions = $userPermissions ?? [];
             };
             ?>
             <ul class="nav nav-pills flex-column">
+                <li class="nav-item">
+                    <?= $this->Html->link(
+                        '<i class="bi bi-house-door me-2"></i>Inicio',
+                        ['controller' => 'Dashboard', 'action' => 'index'],
+                        ['class' => 'nav-link', 'escape' => false]
+                    ) ?>
+                </li>
                 <?php
                 // Facturación section
                 $facturacionItems = array_filter([
@@ -113,12 +120,35 @@ $userPermissions = $userPermissions ?? [];
                 <?php endif; ?>
 
                 <?php
+                // RRHH section
+                $rrhhItems = array_filter([
+                    $canView('employees') ? 'employees' : null,
+                ]);
+                if (!empty($rrhhItems)): ?>
+                <li class="nav-heading">RRHH</li>
+                <?php if ($canView('employees')): ?>
+                <li class="nav-item">
+                    <?= $this->Html->link(
+                        '<i class="bi bi-people-fill me-2"></i>Empleados',
+                        ['controller' => 'Employees', 'action' => 'index'],
+                        ['class' => 'nav-link', 'escape' => false]
+                    ) ?>
+                </li>
+                <?php endif; ?>
+                <?php endif; ?>
+
+                <?php
                 // Catálogos section
                 $catalogoItems = array_filter([
                     $canView('providers') ? 'providers' : null,
                     $canView('operation_centers') ? 'operation_centers' : null,
                     $canView('expense_types') ? 'expense_types' : null,
                     $canView('cost_centers') ? 'cost_centers' : null,
+                    $canView('positions') ? 'positions' : null,
+                    $canView('employee_statuses') ? 'employee_statuses' : null,
+                    $canView('marital_statuses') ? 'marital_statuses' : null,
+                    $canView('education_levels') ? 'education_levels' : null,
+                    $canView('default_folders') ? 'default_folders' : null,
                 ]);
                 if (!empty($catalogoItems)): ?>
                 <li class="nav-heading">Catálogos</li>
@@ -154,6 +184,51 @@ $userPermissions = $userPermissions ?? [];
                     <?= $this->Html->link(
                         '<i class="bi bi-diagram-3 me-2"></i>Centros de Costos',
                         ['controller' => 'CostCenters', 'action' => 'index'],
+                        ['class' => 'nav-link', 'escape' => false]
+                    ) ?>
+                </li>
+                <?php endif; ?>
+                <?php if ($canView('positions')): ?>
+                <li class="nav-item">
+                    <?= $this->Html->link(
+                        '<i class="bi bi-briefcase me-2"></i>Cargos',
+                        ['controller' => 'Positions', 'action' => 'index'],
+                        ['class' => 'nav-link', 'escape' => false]
+                    ) ?>
+                </li>
+                <?php endif; ?>
+                <?php if ($canView('employee_statuses')): ?>
+                <li class="nav-item">
+                    <?= $this->Html->link(
+                        '<i class="bi bi-card-checklist me-2"></i>Estados de Empleado',
+                        ['controller' => 'EmployeeStatuses', 'action' => 'index'],
+                        ['class' => 'nav-link', 'escape' => false]
+                    ) ?>
+                </li>
+                <?php endif; ?>
+                <?php if ($canView('marital_statuses')): ?>
+                <li class="nav-item">
+                    <?= $this->Html->link(
+                        '<i class="bi bi-heart me-2"></i>Estados Civiles',
+                        ['controller' => 'MaritalStatuses', 'action' => 'index'],
+                        ['class' => 'nav-link', 'escape' => false]
+                    ) ?>
+                </li>
+                <?php endif; ?>
+                <?php if ($canView('education_levels')): ?>
+                <li class="nav-item">
+                    <?= $this->Html->link(
+                        '<i class="bi bi-mortarboard me-2"></i>Niveles Educativos',
+                        ['controller' => 'EducationLevels', 'action' => 'index'],
+                        ['class' => 'nav-link', 'escape' => false]
+                    ) ?>
+                </li>
+                <?php endif; ?>
+                <?php if ($canView('default_folders')): ?>
+                <li class="nav-item">
+                    <?= $this->Html->link(
+                        '<i class="bi bi-folder me-2"></i>Carpetas por Defecto',
+                        ['controller' => 'DefaultFolders', 'action' => 'index'],
                         ['class' => 'nav-link', 'escape' => false]
                     ) ?>
                 </li>

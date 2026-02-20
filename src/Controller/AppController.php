@@ -30,6 +30,12 @@ class AppController extends Controller
         'Roles' => 'roles',
         'Approvers' => 'approvers',
         'InvoiceHistories' => 'invoices',
+        'Employees' => 'employees',
+        'EmployeeStatuses' => 'employee_statuses',
+        'MaritalStatuses' => 'marital_statuses',
+        'EducationLevels' => 'education_levels',
+        'Positions' => 'positions',
+        'DefaultFolders' => 'default_folders',
     ];
 
     /**
@@ -39,9 +45,9 @@ class AppController extends Controller
     {
         return match ($action) {
             'index', 'view' => 'view',
-            'add' => 'add',
+            'add', 'addFolder', 'uploadDocument' => 'add',
             'edit', 'advanceStatus' => 'edit',
-            'delete' => 'delete',
+            'delete', 'deleteDocument' => 'delete',
             default => 'view',
         };
     }
@@ -107,11 +113,11 @@ class AppController extends Controller
 
         if (!$this->_checkPermission($module, $permAction)) {
             $this->Flash->error('No tiene permisos para acceder a esta función.');
-            // Avoid redirect loop: if already on invoices/index, redirect to dashboard/login
-            if ($controllerName === 'Invoices' && $action === 'index') {
+            // Avoid redirect loop: if already on dashboard, redirect to login
+            if ($controllerName === 'Dashboard' && $action === 'index') {
                 $this->redirect(['controller' => 'Users', 'action' => 'login']);
             } else {
-                $this->redirect($this->request->referer() ?: ['controller' => 'Invoices', 'action' => 'index']);
+                $this->redirect($this->request->referer() ?: ['controller' => 'Dashboard', 'action' => 'index']);
             }
         }
     }

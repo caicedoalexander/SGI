@@ -50,7 +50,7 @@ return function (RouteBuilder $routes): void {
     $routes->setRouteClass(DashedRoute::class);
 
     $routes->scope('/', function (RouteBuilder $builder): void {
-        $builder->connect('/', ['controller' => 'Invoices', 'action' => 'index']);
+        $builder->connect('/', ['controller' => 'Dashboard', 'action' => 'index']);
         $builder->connect('/login', ['controller' => 'Users', 'action' => 'login']);
         $builder->connect('/logout', ['controller' => 'Users', 'action' => 'logout']);
 
@@ -61,6 +61,23 @@ return function (RouteBuilder $routes): void {
             '/invoices/advance-status/{id}',
             ['controller' => 'Invoices', 'action' => 'advanceStatus'],
             ['id' => '\d+', 'pass' => ['id']]
+        );
+
+        // Employee document management routes
+        $builder->connect(
+            '/employees/add-folder/{employeeId}',
+            ['controller' => 'Employees', 'action' => 'addFolder'],
+            ['employeeId' => '\d+', 'pass' => ['employeeId']]
+        );
+        $builder->connect(
+            '/employees/upload-document/{employeeId}',
+            ['controller' => 'Employees', 'action' => 'uploadDocument'],
+            ['employeeId' => '\d+', 'pass' => ['employeeId']]
+        );
+        $builder->connect(
+            '/employees/delete-document/{employeeId}/{documentId}',
+            ['controller' => 'Employees', 'action' => 'deleteDocument'],
+            ['employeeId' => '\d+', 'documentId' => '\d+', 'pass' => ['employeeId', 'documentId']]
         );
 
         $builder->fallbacks();
