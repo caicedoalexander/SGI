@@ -1141,13 +1141,21 @@ textarea.form-control {
     border-color: var(--primary-color);
 }
 
+/* Contenedor form-check con alineación mejorada */
+.form-check {
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+}
+
 /* Labels */
 .form-check-label {
     font-size: .875rem;
     color: #333;
-    margin-left: .5rem;
     cursor: pointer;
     user-select: none;
+    line-height: 1.5;
+    margin: 0;
 }
 
 /* Form switch (variante más grande) */
