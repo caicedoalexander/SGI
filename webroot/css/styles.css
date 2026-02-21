@@ -1257,6 +1257,61 @@ textarea.form-control {
 }
 
 /* =============================================
+   Breadcrumbs — Personalización Bootstrap
+   ============================================= */
+
+/* Base del breadcrumb */
+.breadcrumb {
+    background-color: transparent;
+    padding: 0;
+    margin-bottom: 1rem;
+    font-size: .875rem;
+}
+
+/* Breadcrumb items */
+.breadcrumb-item {
+    color: #666;
+}
+.breadcrumb-item a {
+    color: #666;
+    text-decoration: none;
+    transition: color .15s ease;
+}
+.breadcrumb-item a:hover {
+    color: var(--primary-color);
+}
+
+/* Breadcrumb item activo */
+.breadcrumb-item.active {
+    color: #333;
+    font-weight: 500;
+}
+
+/* Separador personalizado */
+.breadcrumb-item + .breadcrumb-item::before {
+    content: "/";
+    color: #aaa;
+    padding: 0 .5rem;
+}
+
+/* Variante con fondo */
+.breadcrumb.breadcrumb-bg {
+    background-color: #fafafa;
+    border: 1px solid var(--border-color);
+    border-left: 2px solid var(--primary-color);
+    padding: .75rem 1rem;
+    margin-bottom: 1.25rem;
+}
+
+/* Variante con separador de icono */
+.breadcrumb.breadcrumb-icon .breadcrumb-item + .breadcrumb-item::before {
+    content: "\F285";
+    font-family: "bootstrap-icons";
+    font-size: .75rem;
+    vertical-align: middle;
+}
+
+/* =============================================
    Paginación — Personalización Bootstrap
    ============================================= */
 
