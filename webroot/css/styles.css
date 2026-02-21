@@ -842,6 +842,166 @@ body {
 }
 
 /* =============================================
+   Tablas — Personalización Bootstrap
+   ============================================= */
+
+/* Base de todas las tablas */
+.table {
+    font-size: .875rem;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+/* Table headers */
+.table thead th {
+    font-weight: 600;
+    font-size: .75rem;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    color: #666;
+    border-bottom: 2px solid var(--border-color);
+    padding: .75rem;
+    background-color: #fafafa;
+}
+
+/* Table cells */
+.table td {
+    padding: .75rem;
+    vertical-align: middle;
+    border-bottom: 1px solid var(--border-color);
+}
+
+/* Table bordered */
+.table-bordered {
+    border: 1px solid var(--border-color);
+}
+.table-bordered thead th,
+.table-bordered td {
+    border: 1px solid var(--border-color);
+}
+.table-bordered thead th {
+    border-bottom-width: 2px;
+}
+
+/* Table hover */
+.table-hover tbody tr {
+    transition: background-color .15s ease;
+}
+.table-hover tbody tr:hover {
+    background-color: rgba(70, 157, 97, 0.05);
+}
+
+/* Table striped */
+.table-striped tbody tr:nth-of-type(odd) {
+    background-color: rgba(0, 0, 0, 0.02);
+}
+
+/* Table small */
+.table-sm thead th,
+.table-sm td {
+    padding: .5rem;
+}
+
+/* Table con borde superior de acento */
+.table.table-accent {
+    border-top: 2px solid var(--primary-color);
+}
+
+/* Thead dark */
+.table thead.thead-dark th,
+.table.table-dark thead th {
+    background-color: var(--bg-dark);
+    color: #fff;
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Thead light */
+.table thead.thead-light th {
+    background-color: #f8f9fa;
+    color: #495057;
+}
+
+/* Variantes contextuales para filas */
+.table-primary {
+    --bs-table-bg: rgba(70, 157, 97, 0.1);
+    --bs-table-border-color: rgba(70, 157, 97, 0.2);
+}
+.table tbody tr.table-primary {
+    background-color: rgba(70, 157, 97, 0.1);
+}
+
+.table-secondary {
+    --bs-table-bg: rgba(205, 106, 21, 0.1);
+    --bs-table-border-color: rgba(205, 106, 21, 0.2);
+}
+.table tbody tr.table-secondary {
+    background-color: rgba(205, 106, 21, 0.1);
+}
+
+.table-success {
+    --bs-table-bg: rgba(70, 157, 97, 0.1);
+    --bs-table-border-color: rgba(70, 157, 97, 0.2);
+}
+.table tbody tr.table-success {
+    background-color: rgba(70, 157, 97, 0.1);
+}
+
+.table-danger {
+    --bs-table-bg: rgba(220, 53, 69, 0.1);
+    --bs-table-border-color: rgba(220, 53, 69, 0.2);
+}
+.table tbody tr.table-danger {
+    background-color: rgba(220, 53, 69, 0.1);
+}
+
+.table-warning {
+    --bs-table-bg: rgba(255, 193, 7, 0.1);
+    --bs-table-border-color: rgba(255, 193, 7, 0.2);
+}
+.table tbody tr.table-warning {
+    background-color: rgba(255, 193, 7, 0.1);
+}
+
+.table-info {
+    --bs-table-bg: rgba(13, 202, 240, 0.1);
+    --bs-table-border-color: rgba(13, 202, 240, 0.2);
+}
+.table tbody tr.table-info {
+    background-color: rgba(13, 202, 240, 0.1);
+}
+
+.table-light {
+    --bs-table-bg: #f8f9fa;
+    --bs-table-border-color: var(--border-color);
+}
+.table tbody tr.table-light {
+    background-color: #f8f9fa;
+}
+
+.table-dark {
+    --bs-table-bg: rgba(33, 37, 41, 0.1);
+    --bs-table-border-color: rgba(33, 37, 41, 0.2);
+}
+.table tbody tr.table-dark {
+    background-color: rgba(33, 37, 41, 0.1);
+}
+
+/* Table responsive - sin bordes redondeados */
+.table-responsive {
+    border-radius: 0;
+}
+
+/* Tabla contenida en card */
+.card > .table:first-child thead:first-child tr:first-child th:first-child,
+.card > .table-responsive:first-child > .table:first-child thead:first-child tr:first-child th:first-child {
+    border-top-left-radius: 0;
+}
+.card > .table:first-child thead:first-child tr:first-child th:last-child,
+.card > .table-responsive:first-child > .table:first-child thead:first-child tr:first-child th:last-child {
+    border-top-right-radius: 0;
+}
+
+/* =============================================
    Input group con foco en borde
    ============================================= */
 .sgi-input-group {
