@@ -344,7 +344,7 @@ $ps = $pipelineBadgeMap[$currentStatus] ?? ['Desconocido', 'bg-dark'];
             <div class="row g-3">
                 <div class="col-md-4">
                     <label class="form-label d-block">Causada</label>
-                    <div class="form-check mt-1">
+                    <div class="form-check">
                         <?= $this->Form->control('accrued', array_merge(
                             ['type' => 'checkbox', 'label' => 'Marcar como causada'],
                             $canEdit('accrued')
