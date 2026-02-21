@@ -60,8 +60,252 @@ body {
 }
 
 /* =============================================
-   Botón primario
+   Botones — Personalización Bootstrap
    ============================================= */
+
+/* Base de todos los botones */
+.btn {
+    border-radius: 0;
+    font-weight: 500;
+    font-size: .875rem;
+    transition: background-color .15s ease, border-color .15s ease, color .15s ease;
+    box-shadow: none !important; /* nunca sombras */
+}
+.btn:focus,
+.btn:active {
+    box-shadow: none !important;
+}
+
+/* Botón primario (verde corporativo) */
+.btn-primary {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+    color: #fff;
+}
+.btn-primary:hover,
+.btn-primary:focus,
+.btn-primary:active {
+    background-color: #3a8752;
+    border-color: #3a8752;
+    color: #fff;
+}
+
+/* Botón secundario (naranja) */
+.btn-secondary {
+    background-color: var(--secondary-color);
+    border-color: var(--secondary-color);
+    color: #fff;
+}
+.btn-secondary:hover,
+.btn-secondary:focus,
+.btn-secondary:active {
+    background-color: #b35f13;
+    border-color: #b35f13;
+    color: #fff;
+}
+
+/* Botón success (usa el verde corporativo) */
+.btn-success {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+    color: #fff;
+}
+.btn-success:hover,
+.btn-success:focus,
+.btn-success:active {
+    background-color: #3a8752;
+    border-color: #3a8752;
+    color: #fff;
+}
+
+/* Botón danger */
+.btn-danger {
+    background-color: #dc3545;
+    border-color: #dc3545;
+    color: #fff;
+}
+.btn-danger:hover,
+.btn-danger:focus,
+.btn-danger:active {
+    background-color: #bb2d3b;
+    border-color: #bb2d3b;
+    color: #fff;
+}
+
+/* Botón warning */
+.btn-warning {
+    background-color: #ffc107;
+    border-color: #ffc107;
+    color: #000;
+}
+.btn-warning:hover,
+.btn-warning:focus,
+.btn-warning:active {
+    background-color: #e0a800;
+    border-color: #e0a800;
+    color: #000;
+}
+
+/* Botón info */
+.btn-info {
+    background-color: #0dcaf0;
+    border-color: #0dcaf0;
+    color: #000;
+}
+.btn-info:hover,
+.btn-info:focus,
+.btn-info:active {
+    background-color: #0ab0d1;
+    border-color: #0ab0d1;
+    color: #000;
+}
+
+/* Botón dark */
+.btn-dark {
+    background-color: var(--bg-dark);
+    border-color: var(--bg-dark);
+    color: #fff;
+}
+.btn-dark:hover,
+.btn-dark:focus,
+.btn-dark:active {
+    background-color: #1a1e21;
+    border-color: #1a1e21;
+    color: #fff;
+}
+
+/* Botón light */
+.btn-light {
+    background-color: #f8f9fa;
+    border-color: var(--border-color);
+    color: #212529;
+}
+.btn-light:hover,
+.btn-light:focus,
+.btn-light:active {
+    background-color: #e2e6ea;
+    border-color: #dae0e5;
+    color: #212529;
+}
+
+/* Botones outline */
+.btn-outline-primary {
+    color: var(--primary-color);
+    border-color: var(--primary-color);
+    background-color: transparent;
+}
+.btn-outline-primary:hover,
+.btn-outline-primary:focus,
+.btn-outline-primary:active {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+    color: #fff;
+}
+
+.btn-outline-secondary {
+    color: var(--secondary-color);
+    border-color: var(--secondary-color);
+    background-color: transparent;
+}
+.btn-outline-secondary:hover,
+.btn-outline-secondary:focus,
+.btn-outline-secondary:active {
+    background-color: var(--secondary-color);
+    border-color: var(--secondary-color);
+    color: #fff;
+}
+
+.btn-outline-success {
+    color: var(--primary-color);
+    border-color: var(--primary-color);
+    background-color: transparent;
+}
+.btn-outline-success:hover,
+.btn-outline-success:focus,
+.btn-outline-success:active {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+    color: #fff;
+}
+
+.btn-outline-danger {
+    color: #dc3545;
+    border-color: #dc3545;
+    background-color: transparent;
+}
+.btn-outline-danger:hover,
+.btn-outline-danger:focus,
+.btn-outline-danger:active {
+    background-color: #dc3545;
+    border-color: #dc3545;
+    color: #fff;
+}
+
+.btn-outline-warning {
+    color: #ffc107;
+    border-color: #ffc107;
+    background-color: transparent;
+}
+.btn-outline-warning:hover,
+.btn-outline-warning:focus,
+.btn-outline-warning:active {
+    background-color: #ffc107;
+    border-color: #ffc107;
+    color: #000;
+}
+
+.btn-outline-info {
+    color: #0dcaf0;
+    border-color: #0dcaf0;
+    background-color: transparent;
+}
+.btn-outline-info:hover,
+.btn-outline-info:focus,
+.btn-outline-info:active {
+    background-color: #0dcaf0;
+    border-color: #0dcaf0;
+    color: #000;
+}
+
+.btn-outline-dark {
+    color: var(--bg-dark);
+    border-color: var(--bg-dark);
+    background-color: transparent;
+}
+.btn-outline-dark:hover,
+.btn-outline-dark:focus,
+.btn-outline-dark:active {
+    background-color: var(--bg-dark);
+    border-color: var(--bg-dark);
+    color: #fff;
+}
+
+.btn-outline-light {
+    color: #6c757d;
+    border-color: var(--border-color);
+    background-color: transparent;
+}
+.btn-outline-light:hover,
+.btn-outline-light:focus,
+.btn-outline-light:active {
+    background-color: #f8f9fa;
+    border-color: var(--border-color);
+    color: #212529;
+}
+
+/* Botón link */
+.btn-link {
+    color: var(--primary-color);
+    font-weight: 500;
+    text-decoration: none;
+}
+.btn-link:hover,
+.btn-link:focus {
+    color: #3a8752;
+    text-decoration: underline;
+}
+
+/* Clase legacy (mantener compatibilidad) */
 .sgi-btn-primary {
     background-color: var(--primary-color);
     color: #fff;
