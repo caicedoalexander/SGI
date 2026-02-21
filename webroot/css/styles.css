@@ -1257,6 +1257,86 @@ textarea.form-control {
 }
 
 /* =============================================
+   Paginación — Personalización Bootstrap
+   ============================================= */
+
+/* Base de la paginación */
+.pagination {
+    gap: .25rem;
+}
+
+/* Page items */
+.page-link {
+    border-radius: 0;
+    border: 1px solid var(--border-color);
+    color: #333;
+    font-size: .875rem;
+    font-weight: 500;
+    padding: .5rem .75rem;
+    transition: background-color .15s ease, border-color .15s ease, color .15s ease;
+    box-shadow: none;
+}
+.page-link:hover {
+    background-color: #f8f9fa;
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+}
+.page-link:focus {
+    box-shadow: none;
+    background-color: #f8f9fa;
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+}
+
+/* Page item activo */
+.page-item.active .page-link {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+    color: #fff;
+    font-weight: 600;
+}
+
+/* Page item disabled */
+.page-item.disabled .page-link {
+    background-color: #fff;
+    border-color: var(--border-color);
+    color: #aaa;
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Eliminar espacios entre items */
+.page-item:not(:first-child) .page-link {
+    margin-left: 0;
+}
+
+/* Primera y última página con estilos especiales */
+.page-item:first-child .page-link,
+.page-item:last-child .page-link {
+    border-radius: 0;
+}
+
+/* Paginación pequeña */
+.pagination-sm .page-link {
+    font-size: .8125rem;
+    padding: .375rem .625rem;
+}
+
+/* Paginación grande */
+.pagination-lg .page-link {
+    font-size: .9375rem;
+    padding: .625rem .875rem;
+}
+
+/* Variante con borde de acento en item activo */
+.pagination.pagination-accent .page-item.active .page-link {
+    background-color: #fff;
+    border-color: var(--primary-color);
+    border-width: 2px;
+    color: var(--primary-color);
+}
+
+/* =============================================
    Sidebar — navegación
    ============================================= */
 .sidebar .nav-link {
