@@ -180,7 +180,14 @@ class InvoicesController extends AppController
         $operationCenters = $this->Invoices->OperationCenters->find('codeList')->all();
         $expenseTypes = $this->Invoices->ExpenseTypes->find('list', limit: 200)->all();
         $costCenters = $this->Invoices->CostCenters->find('codeList')->all();
-        $approvers = $this->Invoices->ApproverUsers->find('list', limit: 200)->all();
+        $activeApproverIds = $this->fetchTable('Approvers')
+            ->find()
+            ->select(['user_id'])
+            ->where(['active' => true]);
+        $approvers = $this->Invoices->ApproverUsers
+            ->find('list', limit: 200)
+            ->where(['ApproverUsers.id IN' => $activeApproverIds])
+            ->all();
 
         $pipelineStatuses = InvoicePipelineService::STATUSES;
         $pipelineLabels = InvoicePipelineService::STATUS_LABELS;
