@@ -34,6 +34,22 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+    // ── Auto-dismiss flash notifications ────────────────────────────────────
+    document.querySelectorAll('#sgi-flash-container .alert').forEach(function (el) {
+        setTimeout(function () {
+            bootstrap.Alert.getOrCreateInstance(el).close();
+        }, 4000);
+    });
+
+    // ── Select2 para todos los selects del sistema ──────────────────────────
+    if (typeof $ !== 'undefined' && $.fn && $.fn.select2) {
+        $('select.form-select').select2({
+            width: '100%',
+            language: 'es',
+            minimumResultsForSearch: 7,
+        });
+    }
+
     // ── Click en fila de tabla para editar ──────────────────────────────────
     document.querySelectorAll('tr.clickable-row').forEach(function (row) {
         row.addEventListener('click', function () {

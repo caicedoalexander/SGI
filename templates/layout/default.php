@@ -22,6 +22,7 @@ $currentController = $this->request->getParam('controller');
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css">
     <?= $this->Html->css('styles') ?>
     <?= $this->fetch('meta') ?>
     <?= $this->fetch('css') ?>
@@ -42,7 +43,6 @@ $currentController = $this->request->getParam('controller');
         }
         tr.clickable-row { cursor: pointer; transition: background .15s ease; }
         tr.clickable-row:hover { background-color: rgba(70,157,97,.06) !important; }
-        .flatpickr-input { background: #fff !important; }
     </style>
 </head>
 <body>
@@ -281,10 +281,14 @@ $currentController = $this->request->getParam('controller');
                 <span class="sgi-topbar-title"><?= $this->fetch('title') ?></span>
             </nav>
             <main class="p-4">
-                <?= $this->Flash->render() ?>
                 <?= $this->fetch('content') ?>
             </main>
         </div>
+    </div>
+
+    <!-- Flash notifications fijas -->
+    <div id="sgi-flash-container">
+        <?= $this->Flash->render() ?>
     </div>
 
     <?= $this->element('copcsa') ?>
@@ -292,6 +296,9 @@ $currentController = $this->request->getParam('controller');
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/es.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/i18n/es.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/autonumeric@4.10.5/dist/autoNumeric.min.js"></script>
     <?= $this->Html->script('sgi-common', ['block' => false]) ?>
     <?= $this->fetch('script') ?>
