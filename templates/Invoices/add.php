@@ -23,7 +23,7 @@ $documentTypes = [
     <?= $this->Html->link(
         '<i class="bi bi-arrow-left me-1"></i>Volver',
         ['action' => 'index'],
-        ['class' => 'btn btn-outline-secondary btn-sm', 'escape' => false]
+        ['class' => 'btn btn-outline-dark btn-sm', 'escape' => false]
     ) ?>
 </div>
 

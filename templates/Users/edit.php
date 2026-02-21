@@ -7,7 +7,7 @@
 $this->assign('title', 'Editar Usuario');
 ?>
 <div class="mb-4">
-    <?= $this->Html->link('<i class="bi bi-arrow-left me-1"></i>Volver', ['action' => 'index'], ['class' => 'btn btn-outline-secondary btn-sm', 'escape' => false]) ?>
+    <?= $this->Html->link('<i class="bi bi-arrow-left me-1"></i>Volver', ['action' => 'index'], ['class' => 'btn btn-outline-dark btn-sm', 'escape' => false]) ?>
 </div>
 
 <div class="card shadow-sm">
@@ -38,7 +38,7 @@ $this->assign('title', 'Editar Usuario');
                 <?= $this->Form->control('active', ['class' => 'form-check-input', 'label' => ['text' => 'Activo', 'class' => 'form-check-label'], 'type' => 'checkbox']) ?>
             </div>
         </div>
-        <button type="submit" class="btn btn-warning"><i class="bi bi-save me-1"></i>Actualizar</button>
+        <button type="submit" class="btn btn-primary"><i class="bi bi-save me-1"></i>Actualizar</button>
         <?= $this->Form->end() ?>
     </div>
 </div>

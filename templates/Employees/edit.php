@@ -6,7 +6,7 @@
 $this->assign('title', 'Editar Empleado: ' . $employee->full_name);
 ?>
 <div class="mb-4">
-    <?= $this->Html->link('<i class="bi bi-arrow-left me-1"></i>Volver', ['action' => 'view', $employee->id], ['class' => 'btn btn-outline-secondary btn-sm', 'escape' => false]) ?>
+    <?= $this->Html->link('<i class="bi bi-arrow-left me-1"></i>Volver', ['action' => 'view', $employee->id], ['class' => 'btn btn-outline-dark btn-sm', 'escape' => false]) ?>
 </div>
 
 <?= $this->Form->create($employee) ?>
@@ -124,5 +124,5 @@ $this->assign('title', 'Editar Empleado: ' . $employee->full_name);
     </div>
 </div>
 
-<button type="submit" class="btn btn-warning"><i class="bi bi-save me-1"></i>Actualizar</button>
+<button type="submit" class="btn btn-primary"><i class="bi bi-save me-1"></i>Actualizar</button>
 <?= $this->Form->end() ?>

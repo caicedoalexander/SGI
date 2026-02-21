@@ -45,14 +45,14 @@ $canEdit = fn(string $field): bool => in_array($field, $editableFields, true);
 // Botón de submit
 if ($isRejected) {
     $btnLabel = '<i class="bi bi-save me-1"></i>Guardar Cambios';
-    $btnClass = 'btn btn-warning';
+    $btnClass = 'btn btn-primary';
 } elseif ($canAdvance && empty($advanceErrors) && $nextStatus) {
     $nextLabel = $pipelineLabels[$nextStatus] ?? $nextStatus;
     $btnLabel  = '<i class="bi bi-arrow-right-circle me-1"></i>Guardar y Avanzar a: ' . h($nextLabel);
     $btnClass  = 'btn btn-success';
 } else {
     $btnLabel = '<i class="bi bi-save me-1"></i>Guardar Cambios';
-    $btnClass = 'btn btn-warning';
+    $btnClass = 'btn btn-primary';
 }
 
 $pipelineBadgeMap = [
@@ -72,12 +72,12 @@ $ps = $pipelineBadgeMap[$currentStatus] ?? ['Desconocido', 'bg-dark'];
         <?= $this->Html->link(
             '<i class="bi bi-arrow-left me-1"></i>Volver',
             ['action' => 'index'],
-            ['class' => 'btn btn-outline-secondary btn-sm', 'escape' => false]
+            ['class' => 'btn btn-outline-dark btn-sm', 'escape' => false]
         ) ?>
         <?= $this->Html->link(
             '<i class="bi bi-eye me-1"></i>Ver',
             ['action' => 'view', $invoice->id],
-            ['class' => 'btn btn-outline-secondary btn-sm', 'escape' => false]
+            ['class' => 'btn btn-outline-dark btn-sm', 'escape' => false]
         ) ?>
     </div>
 </div>
