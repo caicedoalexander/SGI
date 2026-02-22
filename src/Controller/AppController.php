@@ -3,8 +3,8 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
-use App\Constants\RoleConstants;
 use App\Service\AuthorizationService;
+use App\Service\InvoicePipelineService;
 use Cake\Controller\Controller;
 use Cake\ORM\TableRegistry;
 
@@ -48,7 +48,7 @@ class AppController extends Controller
     protected function _actionToPermission(string $action): string
     {
         return match ($action) {
-            'index', 'view', 'export' => 'view',
+            'index', 'view', 'export', 'all' => 'view',
             'add', 'addFolder', 'uploadDocument', 'import' => 'add',
             'edit', 'advanceStatus', 'addObservation', 'testSmtp', 'approve', 'reject', 'generateApprovalLink' => 'edit',
             'delete', 'deleteDocument' => 'delete',
@@ -140,8 +140,8 @@ class AppController extends Controller
             $invoicesTable = TableRegistry::getTableLocator()->get('Invoices');
             $roleName = $this->_getUserRoleName($user);
 
-            $authService = new AuthorizationService();
-            $visibleStatuses = $this->_getVisibleStatuses($roleName);
+            $pipeline = new InvoicePipelineService();
+            $visibleStatuses = $pipeline->getVisibleStatuses($roleName);
 
             $counters = [];
             foreach ($visibleStatuses as $status) {
@@ -151,20 +151,11 @@ class AppController extends Controller
             }
 
             $this->set('sidebarCounters', $counters);
+            $this->set('totalInvoicesCount', $invoicesTable->find()->count());
         } catch (\Exception $e) {
             $this->set('sidebarCounters', []);
+            $this->set('totalInvoicesCount', 0);
         }
-    }
-
-    protected function _getVisibleStatuses(string $roleName): array
-    {
-        return match ($roleName) {
-            RoleConstants::REGISTRO_REVISION => ['registro'],
-            RoleConstants::CONTABILIDAD => ['aprobacion', 'contabilidad'],
-            RoleConstants::TESORERIA => ['tesoreria'],
-            RoleConstants::ADMIN => ['registro', 'aprobacion', 'contabilidad', 'tesoreria', 'pagada'],
-            default => [],
-        };
     }
 
     protected function _requireAuth(): void

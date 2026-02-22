@@ -3,21 +3,19 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
-use App\Service\ApprovalTokenService;
-use App\Service\InvoiceHistoryService;
+use App\Service\InvoiceFilterService;
 use App\Service\InvoicePipelineService;
-use App\Service\NotificationService;
 
 class InvoicesController extends AppController
 {
     private InvoicePipelineService $pipeline;
-    private InvoiceHistoryService $historyService;
+    private InvoiceFilterService $filterService;
 
     public function initialize(): void
     {
         parent::initialize();
         $this->pipeline = new InvoicePipelineService();
-        $this->historyService = new InvoiceHistoryService();
+        $this->filterService = new InvoiceFilterService();
     }
 
     private function _getCurrentUser(): object
@@ -42,60 +40,31 @@ class InvoicesController extends AppController
             $query->where(['Invoices.pipeline_status IN' => $visibleStatuses]);
         }
 
-        // Text search
-        $search = $this->request->getQuery('search');
-        if ($search !== null && $search !== '') {
-            $like = '%' . $search . '%';
-            $query->where([
-                'OR' => [
-                    'Invoices.invoice_number LIKE' => $like,
-                    'Invoices.purchase_order LIKE' => $like,
-                    'Invoices.detail LIKE' => $like,
-                    'Providers.name LIKE' => $like,
-                ],
-            ]);
-        }
-
-        // Exact filters
-        $providerId = $this->request->getQuery('provider_id');
-        if ($providerId !== null && $providerId !== '') {
-            $query->where(['Invoices.provider_id' => $providerId]);
-        }
-
-        $operationCenterId = $this->request->getQuery('operation_center_id');
-        if ($operationCenterId !== null && $operationCenterId !== '') {
-            $query->where(['Invoices.operation_center_id' => $operationCenterId]);
-        }
-
-        $expenseTypeId = $this->request->getQuery('expense_type_id');
-        if ($expenseTypeId !== null && $expenseTypeId !== '') {
-            $query->where(['Invoices.expense_type_id' => $expenseTypeId]);
-        }
-
-        $pipelineStatus = $this->request->getQuery('pipeline_status');
-        if ($pipelineStatus !== null && $pipelineStatus !== '') {
-            $query->where(['Invoices.pipeline_status' => $pipelineStatus]);
-        }
-
-        // Date range
-        $dateFrom = $this->request->getQuery('date_from');
-        if ($dateFrom !== null && $dateFrom !== '') {
-            $query->where(['Invoices.issue_date >=' => $dateFrom]);
-        }
-
-        $dateTo = $this->request->getQuery('date_to');
-        if ($dateTo !== null && $dateTo !== '') {
-            $query->where(['Invoices.issue_date <=' => $dateTo]);
-        }
+        $this->filterService->apply($query, $this->request->getQueryParams());
 
         $this->paginate = ['limit' => 15, 'maxLimit' => 15];
         $invoices = $this->paginate($query);
 
-        $providers = $this->Invoices->Providers->find('list', limit: 200)->all();
-        $operationCenters = $this->Invoices->OperationCenters->find('codeList')->all();
-        $expenseTypes = $this->Invoices->ExpenseTypes->find('list', limit: 200)->all();
+        $this->set(compact('invoices', 'visibleStatuses', 'roleName'));
+        $this->set($this->_getFilterDropdowns());
+    }
 
-        $this->set(compact('invoices', 'visibleStatuses', 'roleName', 'providers', 'operationCenters', 'expenseTypes'));
+    public function all()
+    {
+        $roleName = $this->_getRoleName();
+
+        $query = $this->Invoices->find()
+            ->contain(['Providers', 'OperationCenters', 'ExpenseTypes', 'CostCenters', 'RegisteredByUsers']);
+
+        $this->filterService->apply($query, $this->request->getQueryParams());
+
+        $this->paginate = ['limit' => 15, 'maxLimit' => 15];
+        $invoices = $this->paginate($query);
+        $visibleStatuses = [];
+
+        $this->set(compact('invoices', 'visibleStatuses', 'roleName'));
+        $this->set($this->_getFilterDropdowns());
+        $this->render('index');
     }
 
     public function view($id = null)
@@ -140,12 +109,8 @@ class InvoicesController extends AppController
             $this->Flash->error(__('No se pudo guardar la factura. Intente de nuevo.'));
         }
 
-        $providers = $this->Invoices->Providers->find('list', limit: 200)->all();
-        $operationCenters = $this->Invoices->OperationCenters->find('codeList')->all();
-        $expenseTypes = $this->Invoices->ExpenseTypes->find('list', limit: 200)->all();
-        $costCenters = $this->Invoices->CostCenters->find('codeList')->all();
-
-        $this->set(compact('invoice', 'providers', 'operationCenters', 'expenseTypes', 'costCenters'));
+        $this->set(compact('invoice'));
+        $this->set($this->_getFormDropdowns());
     }
 
     public function edit($id = null)
@@ -166,7 +131,7 @@ class InvoicesController extends AppController
         $visibleSections = $this->pipeline->getVisibleSections($roleName, $currentStatus);
         $isRejected = $this->pipeline->isRejected($invoice);
 
-        // Pre-compute advance errors for GET (to show in button label / UI hints)
+        // Pre-compute advance errors for GET
         $advanceErrors = [];
         $nextStatus = null;
         if ($canAdvance && !$isRejected) {
@@ -178,154 +143,59 @@ class InvoicesController extends AppController
 
         if ($this->request->is(['patch', 'post', 'put'])) {
             $user = $this->_getCurrentUser();
-            $data = $this->request->getData();
-
-            // Only allow fields this role can edit in current status
-            $filteredData = $this->pipeline->filterEntityData($data, $roleName, $currentStatus);
-
-            // Re-evaluate advancement with submitted data
-            $advanceNextStatus = null;
-            $postAdvanceErrors = [];
-            if ($canAdvance && !$isRejected) {
-                $testEntity = $this->Invoices->patchEntity(clone $invoice, $filteredData);
-                $postAdvanceErrors = $this->pipeline->validateTransitionRequirements($testEntity, $currentStatus);
-                if (empty($postAdvanceErrors)) {
-                    $advanceNextStatus = $this->pipeline->getNextStatus($currentStatus);
-                }
-            }
-
-            $original = clone $invoice;
-
-            $saved = $this->Invoices->getConnection()->transactional(
-                function () use (&$invoice, $filteredData, $advanceNextStatus, $currentStatus, $user, $original) {
-                    $invoice = $this->Invoices->patchEntity($invoice, $filteredData);
-
-                    if (!$this->Invoices->save($invoice)) {
-                        return false;
-                    }
-
-                    $this->historyService->recordChanges($original, $invoice, $user->id);
-
-                    if ($advanceNextStatus) {
-                        $invoice->pipeline_status = $advanceNextStatus;
-                        if (!$this->Invoices->save($invoice)) {
-                            return false;
-                        }
-                        $this->historyService->recordStatusChange(
-                            $invoice->id,
-                            $currentStatus,
-                            $advanceNextStatus,
-                            $user->id
-                        );
-                    }
-
-                    return true;
-                }
+            $result = $this->pipeline->saveAndAdvance(
+                $invoice,
+                $this->request->getData(),
+                $roleName,
+                $user->id,
             );
 
-            if ($saved) {
-                if ($advanceNextStatus) {
-                    $nextLabel = InvoicePipelineService::STATUS_LABELS[$advanceNextStatus] ?? $advanceNextStatus;
+            if ($result['saved']) {
+                if ($result['advanced']) {
+                    $nextLabel = InvoicePipelineService::STATUS_LABELS[$result['nextStatus']] ?? $result['nextStatus'];
                     $this->Flash->success(sprintf('Factura guardada y avanzada a: %s', $nextLabel));
-
-                    // Send email notification
-                    try {
-                        $notificationService = new NotificationService();
-                        $notificationService->sendStatusChangeNotification($invoice, $currentStatus, $advanceNextStatus);
-                    } catch (\Exception $e) {
-                        // Don't block on email failures
-                    }
                 } else {
                     $this->Flash->success('La factura ha sido actualizada.');
-                    foreach ($postAdvanceErrors as $err) {
+                    foreach ($result['advanceErrors'] as $err) {
                         $this->Flash->warning($err);
                     }
                 }
+
                 return $this->redirect(['action' => 'index']);
             }
 
             $this->Flash->error('No se pudo guardar la factura. Verifique los datos e intente de nuevo.');
         }
 
-        $providers = $this->Invoices->Providers->find('list', limit: 200)->all();
-        $operationCenters = $this->Invoices->OperationCenters->find('codeList')->all();
-        $expenseTypes = $this->Invoices->ExpenseTypes->find('list', limit: 200)->all();
-        $costCenters = $this->Invoices->CostCenters->find('codeList')->all();
-        $activeApproverIds = $this->fetchTable('Approvers')
-            ->find()
-            ->select(['user_id'])
-            ->where(['active' => true]);
-        $approvers = $this->Invoices->ApproverUsers
-            ->find('list', limit: 200)
-            ->where(['ApproverUsers.id IN' => $activeApproverIds])
-            ->all();
-
         $pipelineStatuses = InvoicePipelineService::STATUSES;
         $pipelineLabels = InvoicePipelineService::STATUS_LABELS;
 
         $this->set(compact(
-            'invoice', 'providers', 'operationCenters', 'expenseTypes', 'costCenters',
-            'approvers', 'editableFields', 'canAdvance', 'roleName',
+            'invoice', 'editableFields', 'canAdvance', 'roleName',
             'pipelineStatuses', 'pipelineLabels', 'currentStatus',
-            'visibleSections', 'isRejected', 'advanceErrors', 'nextStatus'
+            'visibleSections', 'isRejected', 'advanceErrors', 'nextStatus',
         ));
+        $this->set($this->_getFormDropdowns());
     }
 
-    /**
-     * Kept for backward compatibility with existing route.
-     * The unified edit action now handles save+advance.
-     */
     public function advanceStatus($id = null)
     {
         $this->request->allowMethod(['post']);
         $invoice = $this->Invoices->get($id);
-        $roleName = $this->_getRoleName();
         $user = $this->_getCurrentUser();
-        $currentStatus = $invoice->pipeline_status;
 
-        if (!$this->pipeline->canAdvance($roleName, $currentStatus)) {
-            $this->Flash->error('No tiene permisos para avanzar esta factura.');
-            return $this->redirect(['action' => 'edit', $id]);
+        $result = $this->pipeline->advance($invoice, $this->_getRoleName(), $user->id);
+
+        if ($result['success']) {
+            $nextLabel = InvoicePipelineService::STATUS_LABELS[$result['nextStatus']] ?? $result['nextStatus'];
+            $this->Flash->success(sprintf('Factura avanzada a: %s', $nextLabel));
+
+            return $this->redirect(['action' => 'index']);
         }
 
-        if ($this->pipeline->isRejected($invoice)) {
-            $this->Flash->error('La factura fue rechazada. El flujo ha terminado.');
-            return $this->redirect(['action' => 'edit', $id]);
-        }
+        $this->Flash->error($result['error']);
 
-        $errors = $this->pipeline->validateTransitionRequirements($invoice, $currentStatus);
-        if (!empty($errors)) {
-            foreach ($errors as $err) {
-                $this->Flash->error($err);
-            }
-            return $this->redirect(['action' => 'edit', $id]);
-        }
-
-        $nextStatus = $this->pipeline->getNextStatus($currentStatus);
-        if (!$nextStatus) {
-            $this->Flash->error('Esta factura ya está en el estado final.');
-            return $this->redirect(['action' => 'edit', $id]);
-        }
-
-        $invoice->pipeline_status = $nextStatus;
-        if ($this->Invoices->save($invoice)) {
-            $this->historyService->recordStatusChange($invoice->id, $currentStatus, $nextStatus, $user->id);
-            $this->Flash->success(sprintf(
-                'Factura avanzada a: %s',
-                InvoicePipelineService::STATUS_LABELS[$nextStatus]
-            ));
-
-            try {
-                $notificationService = new NotificationService();
-                $notificationService->sendStatusChangeNotification($invoice, $currentStatus, $nextStatus);
-            } catch (\Exception $e) {
-                // Don't block on email failures
-            }
-        } else {
-            $this->Flash->error('No se pudo avanzar el estado.');
-        }
-
-        return $this->redirect(['action' => 'index']);
+        return $this->redirect(['action' => 'edit', $id]);
     }
 
     public function generateApprovalLink($id = null)
@@ -334,13 +204,12 @@ class InvoicesController extends AppController
         $invoice = $this->Invoices->get($id);
         $user = $this->_getCurrentUser();
 
-        $tokenService = new ApprovalTokenService();
-        $token = $tokenService->generateToken('invoices', $invoice->id, $user->id);
-
         $scheme = $this->request->getHeaderLine('X-Forwarded-Proto') ?: $this->request->scheme();
-        $url = $scheme . '://' . $this->request->host() . '/approve/' . $token;
+        $baseUrl = $scheme . '://' . $this->request->host();
+        $url = $this->pipeline->generateApprovalLink($invoice->id, $user->id, $baseUrl);
 
         $this->Flash->success('Enlace de aprobación generado (válido por 48h): ' . $url);
+
         return $this->redirect(['action' => 'view', $id]);
     }
 
@@ -376,5 +245,33 @@ class InvoicesController extends AppController
         }
 
         return $this->redirect(['action' => 'index']);
+    }
+
+    private function _getFilterDropdowns(): array
+    {
+        return [
+            'providers' => $this->Invoices->Providers->find('list', limit: 200)->all(),
+            'operationCenters' => $this->Invoices->OperationCenters->find('codeList')->all(),
+            'expenseTypes' => $this->Invoices->ExpenseTypes->find('list', limit: 200)->all(),
+        ];
+    }
+
+    private function _getFormDropdowns(): array
+    {
+        $activeApproverIds = $this->fetchTable('Approvers')
+            ->find()
+            ->select(['user_id'])
+            ->where(['active' => true]);
+
+        return [
+            'providers' => $this->Invoices->Providers->find('list', limit: 200)->all(),
+            'operationCenters' => $this->Invoices->OperationCenters->find('codeList')->all(),
+            'expenseTypes' => $this->Invoices->ExpenseTypes->find('list', limit: 200)->all(),
+            'costCenters' => $this->Invoices->CostCenters->find('codeList')->all(),
+            'approvers' => $this->Invoices->ApproverUsers
+                ->find('list', limit: 200)
+                ->where(['ApproverUsers.id IN' => $activeApproverIds])
+                ->all(),
+        ];
     }
 }

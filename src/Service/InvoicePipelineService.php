@@ -4,6 +4,8 @@ declare(strict_types=1);
 namespace App\Service;
 
 use App\Constants\RoleConstants;
+use App\Model\Entity\Invoice;
+use Cake\ORM\TableRegistry;
 
 class InvoicePipelineService
 {
@@ -248,5 +250,146 @@ class InvoicePipelineService
     {
         $index = array_search($status, self::STATUSES);
         return $index !== false ? $index : 0;
+    }
+
+    /**
+     * Save invoice fields, optionally advance the pipeline, record history, and send notifications.
+     *
+     * Returns an associative array:
+     *   - 'saved'          => bool
+     *   - 'advanced'       => bool
+     *   - 'nextStatus'     => ?string
+     *   - 'advanceErrors'  => string[]   (warnings when save succeeded but advance did not)
+     */
+    public function saveAndAdvance(
+        Invoice $invoice,
+        array $data,
+        string $roleName,
+        int $userId,
+    ): array {
+        $invoicesTable = TableRegistry::getTableLocator()->get('Invoices');
+        $historyService = new InvoiceHistoryService();
+
+        $currentStatus = $invoice->pipeline_status;
+        $filteredData = $this->filterEntityData($data, $roleName, $currentStatus);
+        $canAdvance = $this->canAdvance($roleName, $currentStatus);
+        $isRejected = $this->isRejected($invoice);
+
+        // Determine if we can advance with submitted data
+        $advanceNextStatus = null;
+        $postAdvanceErrors = [];
+        if ($canAdvance && !$isRejected) {
+            $testEntity = $invoicesTable->patchEntity(clone $invoice, $filteredData);
+            $postAdvanceErrors = $this->validateTransitionRequirements($testEntity, $currentStatus);
+            if (empty($postAdvanceErrors)) {
+                $advanceNextStatus = $this->getNextStatus($currentStatus);
+            }
+        }
+
+        $original = clone $invoice;
+
+        $saved = $invoicesTable->getConnection()->transactional(
+            function () use ($invoicesTable, $historyService, &$invoice, $filteredData, $advanceNextStatus, $currentStatus, $userId, $original) {
+                $invoice = $invoicesTable->patchEntity($invoice, $filteredData);
+
+                if (!$invoicesTable->save($invoice)) {
+                    return false;
+                }
+
+                $historyService->recordChanges($original, $invoice, $userId);
+
+                if ($advanceNextStatus) {
+                    $invoice->pipeline_status = $advanceNextStatus;
+                    if (!$invoicesTable->save($invoice)) {
+                        return false;
+                    }
+                    $historyService->recordStatusChange(
+                        $invoice->id,
+                        $currentStatus,
+                        $advanceNextStatus,
+                        $userId,
+                    );
+                }
+
+                return true;
+            }
+        );
+
+        if ($saved && $advanceNextStatus) {
+            $this->sendNotification($invoice, $currentStatus, $advanceNextStatus);
+        }
+
+        return [
+            'saved' => (bool)$saved,
+            'advanced' => (bool)$advanceNextStatus && (bool)$saved,
+            'nextStatus' => $advanceNextStatus,
+            'advanceErrors' => $postAdvanceErrors,
+        ];
+    }
+
+    /**
+     * Standalone advance (without field edits). Used by the legacy advanceStatus route.
+     *
+     * Returns an associative array:
+     *   - 'success' => bool
+     *   - 'error'   => ?string
+     *   - 'nextStatus' => ?string
+     */
+    public function advance(Invoice $invoice, string $roleName, int $userId): array
+    {
+        $currentStatus = $invoice->pipeline_status;
+
+        if (!$this->canAdvance($roleName, $currentStatus)) {
+            return ['success' => false, 'error' => 'No tiene permisos para avanzar esta factura.', 'nextStatus' => null];
+        }
+
+        if ($this->isRejected($invoice)) {
+            return ['success' => false, 'error' => 'La factura fue rechazada. El flujo ha terminado.', 'nextStatus' => null];
+        }
+
+        $errors = $this->validateTransitionRequirements($invoice, $currentStatus);
+        if (!empty($errors)) {
+            return ['success' => false, 'error' => implode(' ', $errors), 'nextStatus' => null];
+        }
+
+        $nextStatus = $this->getNextStatus($currentStatus);
+        if (!$nextStatus) {
+            return ['success' => false, 'error' => 'Esta factura ya está en el estado final.', 'nextStatus' => null];
+        }
+
+        $invoicesTable = TableRegistry::getTableLocator()->get('Invoices');
+        $invoice->pipeline_status = $nextStatus;
+
+        if (!$invoicesTable->save($invoice)) {
+            return ['success' => false, 'error' => 'No se pudo avanzar el estado.', 'nextStatus' => null];
+        }
+
+        $historyService = new InvoiceHistoryService();
+        $historyService->recordStatusChange($invoice->id, $currentStatus, $nextStatus, $userId);
+
+        $this->sendNotification($invoice, $currentStatus, $nextStatus);
+
+        return ['success' => true, 'error' => null, 'nextStatus' => $nextStatus];
+    }
+
+    /**
+     * Build the approval link URL for an invoice.
+     */
+    public function generateApprovalLink(int $invoiceId, int $userId, string $baseUrl): string
+    {
+        $tokenService = new ApprovalTokenService();
+        $token = $tokenService->generateToken('invoices', $invoiceId, $userId);
+
+        return $baseUrl . '/approve/' . $token;
+    }
+
+    private function sendNotification(Invoice $invoice, string $fromStatus, string $toStatus): void
+    {
+        try {
+            $notificationService = new NotificationService();
+            $notificationService->sendStatusChangeNotification($invoice, $fromStatus, $toStatus);
+        } catch (\Exception $e) {
+            // Don't block on email failures
+        }
     }
 }

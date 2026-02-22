@@ -8,7 +8,9 @@
  * @var \Cake\ORM\ResultSet $operationCenters
  * @var \Cake\ORM\ResultSet $expenseTypes
  */
-$this->assign('title', 'Facturas');
+$isAllView = $this->request->getParam('action') === 'all';
+$pageTitle = $isAllView ? 'Todas las Facturas' : 'Mis Facturas';
+$this->assign('title', $pageTitle);
 
 $pipelineBadges = [
     'registro'      => ['Registro',      'bg-secondary'],
@@ -30,7 +32,7 @@ $pipelineOptions = [
 ?>
 
 <div class="sgi-page-header d-flex justify-content-between align-items-center">
-    <span class="sgi-page-title">Facturas</span>
+    <span class="sgi-page-title"><?= $pageTitle ?></span>
     <?= $this->Html->link(
         '<i class="bi bi-plus-lg me-1"></i>Nueva Factura',
         ['action' => 'add'],
@@ -40,7 +42,7 @@ $pipelineOptions = [
 
 <!-- Search & Filters -->
 <div class="sgi-search-bar mb-3">
-    <?= $this->Form->create(null, ['type' => 'get', 'valueSources' => ['query']]) ?>
+    <?= $this->Form->create(null, ['type' => 'get', 'url' => ['action' => $isAllView ? 'all' : 'index'], 'valueSources' => ['query']]) ?>
     <div class="d-flex gap-2">
         <div class="flex-grow-1">
             <?= $this->Form->control('search', [
@@ -58,7 +60,7 @@ $pipelineOptions = [
         <?php if ($hasFilters): ?>
             <?= $this->Html->link(
                 '<i class="bi bi-x-lg"></i> Limpiar',
-                ['action' => 'index'],
+                ['action' => $isAllView ? 'all' : 'index'],
                 ['class' => 'btn btn-outline-danger', 'escape' => false]
             ) ?>
         <?php endif; ?>

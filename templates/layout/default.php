@@ -67,8 +67,13 @@ $currentController = $this->request->getParam('controller');
             $canView = function (string $module) use ($userPermissions): bool {
                 return !empty($userPermissions[$module]['can_view']);
             };
-            $navLink = function (string $controller) use ($currentController): string {
-                return 'nav-link' . ($currentController === $controller ? ' active' : '');
+            $currentAction = $this->request->getParam('action');
+            $navLink = function (string $controller, ?string $action = null) use ($currentController, $currentAction): string {
+                $match = $currentController === $controller;
+                if ($action !== null) {
+                    $match = $match && $currentAction === $action;
+                }
+                return 'nav-link' . ($match ? ' active' : '');
             };
             ?>
 
@@ -91,10 +96,18 @@ $currentController = $this->request->getParam('controller');
                 <?php if ($canView('invoices')): ?>
                 <li class="nav-item">
                     <?= $this->Html->link(
-                        '<i class="bi bi-receipt me-2"></i>Facturas' .
+                        '<i class="bi bi-receipt me-2"></i>Mis Facturas' .
                         (!empty($sidebarCounters) ? ' <span class="badge bg-success sidebar-badge ms-auto">' . array_sum($sidebarCounters) . '</span>' : ''),
                         ['controller' => 'Invoices', 'action' => 'index'],
-                        ['class' => $navLink('Invoices') . ' d-flex align-items-center', 'escape' => false]
+                        ['class' => $navLink('Invoices', 'index') . ' d-flex align-items-center', 'escape' => false]
+                    ) ?>
+                </li>
+                <li class="nav-item">
+                    <?= $this->Html->link(
+                        '<i class="bi bi-receipt-cutoff me-2"></i>Todas las Facturas' .
+                        (!empty($totalInvoicesCount) ? ' <span class="badge bg-info sidebar-badge ms-auto">' . $totalInvoicesCount . '</span>' : ''),
+                        ['controller' => 'Invoices', 'action' => 'all'],
+                        ['class' => $navLink('Invoices', 'all') . ' d-flex align-items-center', 'escape' => false]
                     ) ?>
                 </li>
                 <?php endif; ?>
