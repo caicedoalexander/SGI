@@ -5,6 +5,7 @@ namespace App\Controller;
 
 use App\Service\EmployeeDocumentService;
 use App\Service\EmployeeFilterService;
+use App\Service\ExcelService;
 use Cake\ORM\TableRegistry;
 
 class EmployeesController extends AppController
@@ -191,6 +192,114 @@ class EmployeesController extends AppController
         }
 
         return $this->redirect(['action' => 'view', $employeeId]);
+    }
+
+    public function export()
+    {
+        $query = $this->Employees->find()
+            ->contain([
+                'EmployeeStatuses',
+                'Positions',
+                'SupervisorPositions',
+                'OperationCenters',
+                'CostCenters',
+                'MaritalStatuses',
+                'EducationLevels',
+            ])
+            ->order(['Employees.last_name' => 'ASC'])
+            ->formatResults(function ($results) {
+                return $results->map(function ($employee) {
+                    $data = [
+                        'document_type' => $employee->document_type,
+                        'document_number' => $employee->document_number,
+                        'first_name' => $employee->first_name,
+                        'last_name' => $employee->last_name,
+                        'birth_date' => $employee->birth_date,
+                        'gender' => $employee->gender,
+                        'email' => $employee->email,
+                        'phone' => $employee->phone,
+                        'address' => $employee->address,
+                        'city' => $employee->city,
+                        'hire_date' => $employee->hire_date,
+                        'termination_date' => $employee->termination_date,
+                        'salary' => $employee->salary,
+                        'eps' => $employee->eps,
+                        'pension_fund' => $employee->pension_fund,
+                        'arl' => $employee->arl,
+                        'severance_fund' => $employee->severance_fund,
+                        'notes' => $employee->notes,
+                        'active' => $employee->active,
+                        'position_id' => $employee->position_id,
+                        'position' => $employee->position->name ?? '',
+                        'supervisor_position_id' => $employee->supervisor_position_id,
+                        'supervisor_position' => $employee->supervisor_position->name ?? '',
+                        'operation_center_id' => $employee->operation_center_id,
+                        'operation_center' => $employee->operation_center->name ?? '',
+                        'cost_center_id' => $employee->cost_center_id,
+                        'cost_center' => $employee->cost_center->name ?? '',
+                        'employee_status_id' => $employee->employee_status_id,
+                        'employee_status' => $employee->employee_status->name ?? '',
+                        'marital_status_id' => $employee->marital_status_id,
+                        'marital_status' => $employee->marital_status->name ?? '',
+                        'education_level_id' => $employee->education_level_id,
+                        'education_level' => $employee->education_level->name ?? '',
+                    ];
+
+                    return new \ArrayObject($data);
+                });
+            });
+
+        $excelService = new ExcelService();
+        $filePath = $excelService->exportCatalog('Empleados', $query);
+
+        $response = $this->response->withFile($filePath, [
+            'download' => true,
+            'name' => 'empleados_' . date('Y-m-d') . '.xlsx',
+        ]);
+
+        register_shutdown_function(function () use ($filePath) {
+            if (file_exists($filePath)) {
+                unlink($filePath);
+            }
+        });
+
+        return $response;
+    }
+
+    public function import()
+    {
+        $this->request->allowMethod(['post']);
+
+        $file = $this->request->getUploadedFile('excel_file');
+        if (!$file || $file->getError() !== UPLOAD_ERR_OK) {
+            $this->Flash->error('No se recibió un archivo válido.');
+            return $this->redirect(['action' => 'index']);
+        }
+
+        $excelService = new ExcelService();
+        $result = $excelService->importCatalog(
+            'Employees',
+            $file,
+            'document_number',
+            [
+                'profile_image',
+                'position',
+                'supervisor_position',
+                'operation_center',
+                'cost_center',
+                'employee_status',
+                'marital_status',
+                'education_level',
+            ],
+        );
+
+        $this->Flash->success($result->getSummary());
+
+        foreach ($result->errors as $error) {
+            $this->Flash->warning($error);
+        }
+
+        return $this->redirect(['action' => 'index']);
     }
 
     protected function _setFormDropdowns(): void

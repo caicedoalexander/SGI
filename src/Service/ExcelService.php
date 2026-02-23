@@ -28,7 +28,8 @@ class ExcelService
             $sheet->setCellValue('A1', 'Sin datos');
         } else {
             // Headers from first row keys
-            $firstRow = $results[0]->toArray();
+            $first = $results[0];
+            $firstRow = method_exists($first, 'toArray') ? $first->toArray() : (array)$first;
             $headers = array_keys($firstRow);
             foreach ($headers as $col => $header) {
                 $cell = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($col + 1) . '1';
@@ -38,7 +39,7 @@ class ExcelService
 
             // Data rows
             foreach ($results as $rowNum => $entity) {
-                $row = $entity->toArray();
+                $row = method_exists($entity, 'toArray') ? $entity->toArray() : (array)$entity;
                 foreach ($headers as $col => $header) {
                     $value = $row[$header] ?? '';
                     if ($value instanceof \DateTimeInterface) {
@@ -65,10 +66,19 @@ class ExcelService
 
     /**
      * Import a catalog from an XLSX file.
-     * Uses 'code' field as unique identifier for upsert.
+     * Uses $keyField as unique identifier for upsert (default: 'code').
+     *
+     * @param string $tableName ORM table alias
+     * @param \Psr\Http\Message\UploadedFileInterface $file Uploaded XLSX
+     * @param string $keyField Column used as unique key for upsert
+     * @param array<string> $skipFields Extra fields to skip on import
      */
-    public function importCatalog(string $tableName, UploadedFileInterface $file): ImportResult
-    {
+    public function importCatalog(
+        string $tableName,
+        UploadedFileInterface $file,
+        string $keyField = 'code',
+        array $skipFields = [],
+    ): ImportResult {
         $result = new ImportResult();
 
         // Save uploaded file temporarily
@@ -94,36 +104,37 @@ class ExcelService
         }
 
         $headers = array_map('trim', $rows[0]);
-        $codeIndex = array_search('code', $headers);
+        $keyIndex = array_search($keyField, $headers);
 
-        if ($codeIndex === false) {
-            $result->errors[] = 'El archivo debe contener una columna "code".';
+        if ($keyIndex === false) {
+            $result->errors[] = "El archivo debe contener una columna \"{$keyField}\".";
             return $result;
         }
 
         $table = TableRegistry::getTableLocator()->get($tableName);
 
-        // Skip system fields
-        $skipFields = ['id', 'created', 'modified'];
+        // Skip system fields + any extra fields
+        $defaultSkip = ['id', 'created', 'modified'];
+        $allSkip = array_merge($defaultSkip, $skipFields);
 
         for ($i = 1; $i < count($rows); $i++) {
             $rowData = [];
             foreach ($headers as $col => $header) {
-                if (in_array($header, $skipFields)) {
+                if (in_array($header, $allSkip)) {
                     continue;
                 }
                 $rowData[$header] = $rows[$i][$col] ?? null;
             }
 
-            $code = trim((string)($rowData['code'] ?? ''));
-            if (empty($code)) {
+            $keyValue = trim((string)($rowData[$keyField] ?? ''));
+            if (empty($keyValue)) {
                 $result->skipped++;
                 continue;
             }
 
             // Check if exists
             $existing = $table->find()
-                ->where(['code' => $code])
+                ->where([$keyField => $keyValue])
                 ->first();
 
             if ($existing) {
