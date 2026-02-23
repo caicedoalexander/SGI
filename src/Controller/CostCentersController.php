@@ -8,6 +8,7 @@ use App\Controller\Trait\ExcelCatalogTrait;
 class CostCentersController extends AppController
 {
     use ExcelCatalogTrait;
+
     public function index()
     {
         $costCenters = $this->paginate($this->CostCenters);

@@ -3,11 +3,11 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
-use App\Service\AuthorizationService;
+use Cake\Event\EventInterface;
 
 class UsersController extends AppController
 {
-    public function beforeFilter(\Cake\Event\EventInterface $event): void
+    public function beforeFilter(EventInterface $event): void
     {
         parent::beforeFilter($event);
         $this->Authentication->allowUnauthenticated(['login']);
@@ -21,6 +21,7 @@ class UsersController extends AppController
         $result = $this->Authentication->getResult();
         if ($result && $result->isValid()) {
             $redirect = $this->request->getQuery('redirect', ['controller' => 'Dashboard', 'action' => 'index']);
+
             return $this->redirect($redirect);
         }
 
@@ -35,6 +36,7 @@ class UsersController extends AppController
         if ($result && $result->isValid()) {
             $this->Authentication->logout();
         }
+
         return $this->redirect(['action' => 'login']);
     }
 
@@ -60,6 +62,7 @@ class UsersController extends AppController
             $user = $this->Users->patchEntity($user, $this->request->getData());
             if ($this->Users->save($user)) {
                 $this->Flash->success(__('El usuario ha sido guardado.'));
+
                 return $this->redirect(['action' => 'index']);
             }
             $this->Flash->error(__('No se pudo guardar el usuario. Intente de nuevo.'));
@@ -80,6 +83,7 @@ class UsersController extends AppController
             $user = $this->Users->patchEntity($user, $data);
             if ($this->Users->save($user)) {
                 $this->Flash->success(__('El usuario ha sido actualizado.'));
+
                 return $this->redirect(['action' => 'index']);
             }
             $this->Flash->error(__('No se pudo actualizar el usuario. Intente de nuevo.'));

@@ -6,6 +6,8 @@ namespace App\Controller;
 use App\Service\EmployeeDocumentService;
 use App\Service\EmployeeFilterService;
 use App\Service\ExcelService;
+use ArrayObject;
+use Cake\I18n\Date;
 use Cake\ORM\TableRegistry;
 
 class EmployeesController extends AppController
@@ -25,7 +27,7 @@ class EmployeesController extends AppController
     public function index()
     {
         $query = $this->Employees->find()
-            ->contain(['EmployeeStatuses', 'Positions', 'OperationCenters'])
+            ->contain(['EmployeeStatuses', 'Positions', 'OperationCenters', 'ActiveNovedad'])
             ->order(['Employees.last_name' => 'ASC']);
 
         $this->filterService->apply($query, $this->request->getQueryParams());
@@ -49,6 +51,12 @@ class EmployeesController extends AppController
             'SupervisorPositions',
             'OperationCenters',
             'CostCenters',
+            'OrganizacionesTemporales',
+            'ActiveNovedad',
+            'EmployeeNovedades' => [
+                'sort' => ['EmployeeNovedades.created' => 'DESC'],
+                'CreatedByUsers',
+            ],
             'EmployeeFolders' => [
                 'sort' => ['EmployeeFolders.name' => 'ASC'],
                 'EmployeeDocuments' => [
@@ -98,6 +106,14 @@ class EmployeesController extends AppController
         if ($this->request->is(['patch', 'post', 'put'])) {
             $employee = $this->Employees->patchEntity($employee, $this->request->getData());
             if ($this->Employees->save($employee)) {
+                // If changed to "Retirado" (id=2), deactivate active novedad
+                if ($employee->employee_status_id === 2) {
+                    $novedadesTable = TableRegistry::getTableLocator()->get('EmployeeNovedades');
+                    $novedadesTable->updateAll(
+                        ['active' => false, 'end_date' => Date::now()],
+                        ['employee_id' => $employee->id, 'active' => true],
+                    );
+                }
                 $warning = $this->documentService->handleProfileImage(
                     $employee,
                     $this->request->getUploadedFile('profile_image_file'),
@@ -205,6 +221,7 @@ class EmployeesController extends AppController
                 'CostCenters',
                 'MaritalStatuses',
                 'EducationLevels',
+                'OrganizacionesTemporales',
             ])
             ->order(['Employees.last_name' => 'ASC'])
             ->formatResults(function ($results) {
@@ -227,6 +244,9 @@ class EmployeesController extends AppController
                         'pension_fund' => $employee->pension_fund,
                         'arl' => $employee->arl,
                         'severance_fund' => $employee->severance_fund,
+                        'tipo_contrato' => $employee->tipo_contrato,
+                        'organizacion_temporal' => $employee->organizacion_temporal->name ?? '',
+                        'chaleco' => $employee->chaleco,
                         'notes' => $employee->notes,
                         'active' => $employee->active,
                         'position_id' => $employee->position_id,
@@ -245,7 +265,7 @@ class EmployeesController extends AppController
                         'education_level' => $employee->education_level->name ?? '',
                     ];
 
-                    return new \ArrayObject($data);
+                    return new ArrayObject($data);
                 });
             });
 
@@ -273,6 +293,7 @@ class EmployeesController extends AppController
         $file = $this->request->getUploadedFile('excel_file');
         if (!$file || $file->getError() !== UPLOAD_ERR_OK) {
             $this->Flash->error('No se recibió un archivo válido.');
+
             return $this->redirect(['action' => 'index']);
         }
 
@@ -290,6 +311,7 @@ class EmployeesController extends AppController
                 'employee_status',
                 'marital_status',
                 'education_level',
+                'organizacion_temporal',
             ],
         );
 
@@ -310,6 +332,9 @@ class EmployeesController extends AppController
         $positions = $this->Employees->Positions->find('codeList')->all();
         $operationCenters = $this->Employees->OperationCenters->find('codeList')->all();
         $costCenters = $this->Employees->CostCenters->find('codeList')->all();
+        $organizacionesTemporales = $this->Employees->OrganizacionesTemporales->find('codeList')
+            ->where(['OrganizacionesTemporales.active' => true])
+            ->all();
 
         $this->set(compact(
             'employeeStatuses',
@@ -318,6 +343,7 @@ class EmployeesController extends AppController
             'positions',
             'operationCenters',
             'costCenters',
+            'organizacionesTemporales',
         ));
     }
 }

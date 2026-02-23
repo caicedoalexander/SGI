@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Service\ApprovalTokenService;
+use Cake\Event\EventInterface;
 
 class ExternalApprovalsController extends AppController
 {
@@ -13,13 +14,21 @@ class ExternalApprovalsController extends AppController
     {
         parent::initialize();
         $this->tokenService = new ApprovalTokenService();
-        $this->Authentication->allowUnauthenticated(['review', 'process']);
+        // Authentication is required - no allowUnauthenticated
     }
 
-    public function beforeFilter(\Cake\Event\EventInterface $event): void
+    public function beforeFilter(EventInterface $event): void
     {
+        parent::beforeFilter($event);
+
         // Skip permission enforcement for external approvals
-        // (these are token-based, not role-based)
+        // These are token-based + authentication-based, not role-based
+    }
+
+    protected function _enforcePermission(object $user): void
+    {
+        // Override to skip permission checks for this controller
+        // Access is controlled by token validation + user identity match
     }
 
     public function review($token = null)
@@ -29,16 +38,29 @@ class ExternalApprovalsController extends AppController
         $tokenRecord = $this->tokenService->validateToken($token);
         if (!$tokenRecord) {
             $this->set('expired', true);
+
             return $this->render('expired');
         }
 
         $entity = $this->tokenService->getEntity($tokenRecord->entity_type, $tokenRecord->entity_id);
         if (!$entity) {
             $this->set('expired', true);
+
             return $this->render('expired');
         }
 
-        $this->set(compact('token', 'tokenRecord', 'entity'));
+        // Validate that logged-in user is the assigned approver
+        $identity = $this->Authentication->getIdentity();
+        $currentUser = $identity->getOriginalData();
+
+        if ($tokenRecord->entity_type === 'invoices' && $entity->approver_id !== $currentUser->id) {
+            $this->Flash->error('No tiene autorización para aprobar esta factura. Solo el aprobador asignado puede hacerlo.');
+            $this->set('unauthorized', true);
+
+            return $this->render('expired');
+        }
+
+        $this->set(compact('token', 'tokenRecord', 'entity', 'currentUser'));
     }
 
     public function process($token = null)
@@ -49,12 +71,26 @@ class ExternalApprovalsController extends AppController
         $tokenRecord = $this->tokenService->validateToken($token);
         if (!$tokenRecord) {
             $this->set('expired', true);
+
+            return $this->render('expired');
+        }
+
+        // Validate that logged-in user is the assigned approver
+        $identity = $this->Authentication->getIdentity();
+        $currentUser = $identity->getOriginalData();
+        $entity = $this->tokenService->getEntity($tokenRecord->entity_type, $tokenRecord->entity_id);
+
+        if ($tokenRecord->entity_type === 'invoices' && $entity && $entity->approver_id !== $currentUser->id) {
+            $this->Flash->error('No tiene autorización para aprobar esta factura.');
+            $this->set('expired', true);
+
             return $this->render('expired');
         }
 
         $action = $this->request->getData('action');
         if (!in_array($action, ['approve', 'reject'])) {
             $this->Flash->error('Acción no válida.');
+
             return $this->redirect(['action' => 'review', $token]);
         }
 
@@ -63,9 +99,18 @@ class ExternalApprovalsController extends AppController
         $ip = $this->request->clientIp();
         $userAgent = $this->request->getHeaderLine('User-Agent');
 
-        $success = $this->tokenService->consumeToken($token, $action, $observations, $ip, $userAgent, $approvalDate);
+        $success = $this->tokenService->consumeToken(
+            $token,
+            $action,
+            $observations,
+            $ip,
+            $userAgent,
+            $approvalDate,
+            (int)$currentUser->id,
+        );
 
         $this->set(compact('success', 'action'));
+
         return $this->render('confirmed');
     }
 }

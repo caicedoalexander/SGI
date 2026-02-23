@@ -1,0 +1,59 @@
+<?php
+declare(strict_types=1);
+
+namespace App\Model\Table;
+
+use Cake\ORM\RulesChecker;
+use Cake\ORM\Table;
+use Cake\Validation\Validator;
+
+class InvoiceDocumentsTable extends Table
+{
+    public function initialize(array $config): void
+    {
+        parent::initialize($config);
+
+        $this->setTable('invoice_documents');
+        $this->setDisplayField('file_name');
+        $this->setPrimaryKey('id');
+
+        $this->addBehavior('Timestamp');
+
+        $this->belongsTo('Invoices', [
+            'foreignKey' => 'invoice_id',
+            'joinType' => 'INNER',
+        ]);
+        $this->belongsTo('UploadedByUsers', [
+            'className' => 'Users',
+            'foreignKey' => 'uploaded_by',
+        ]);
+    }
+
+    public function validationDefault(Validator $validator): Validator
+    {
+        $validator
+            ->scalar('pipeline_status')
+            ->maxLength('pipeline_status', 30)
+            ->notEmptyString('pipeline_status');
+
+        $validator
+            ->scalar('file_path')
+            ->maxLength('file_path', 255)
+            ->notEmptyString('file_path');
+
+        $validator
+            ->scalar('file_name')
+            ->maxLength('file_name', 255)
+            ->notEmptyString('file_name');
+
+        return $validator;
+    }
+
+    public function buildRules(RulesChecker $rules): RulesChecker
+    {
+        $rules->add($rules->existsIn('invoice_id', 'Invoices'), ['errorField' => 'invoice_id']);
+        $rules->add($rules->existsIn('uploaded_by', 'UploadedByUsers'), ['errorField' => 'uploaded_by', 'allowNullableNulls' => true]);
+
+        return $rules;
+    }
+}

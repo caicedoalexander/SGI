@@ -3,8 +3,10 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use App\Service\InvoiceDocumentService;
 use App\Service\InvoiceFilterService;
 use App\Service\InvoicePipelineService;
+use Cake\ORM\TableRegistry;
 
 class InvoicesController extends AppController
 {
@@ -82,6 +84,10 @@ class InvoicesController extends AppController
                 'Users',
                 'sort' => ['InvoiceObservations.created' => 'ASC'],
             ],
+            'InvoiceDocuments' => [
+                'UploadedByUsers',
+                'sort' => ['InvoiceDocuments.created' => 'DESC'],
+            ],
         ]);
 
         $roleName = $this->_getRoleName();
@@ -89,7 +95,12 @@ class InvoicesController extends AppController
         $pipelineStatuses = InvoicePipelineService::STATUSES;
         $pipelineLabels = InvoicePipelineService::STATUS_LABELS;
 
-        $this->set(compact('invoice', 'roleName', 'isRejected', 'pipelineStatuses', 'pipelineLabels'));
+        $documentsByStatus = [];
+        foreach ($invoice->invoice_documents as $doc) {
+            $documentsByStatus[$doc->pipeline_status][] = $doc;
+        }
+
+        $this->set(compact('invoice', 'roleName', 'isRejected', 'pipelineStatuses', 'pipelineLabels', 'documentsByStatus'));
     }
 
     public function add()
@@ -99,11 +110,12 @@ class InvoicesController extends AppController
             $user = $this->_getCurrentUser();
             $data = $this->request->getData();
             $data['registered_by'] = $user->id;
-            $data['pipeline_status'] = $data['pipeline_status'] ?? 'registro';
+            $data['pipeline_status'] = 'aprobacion';
 
             $invoice = $this->Invoices->patchEntity($invoice, $data);
             if ($this->Invoices->save($invoice)) {
                 $this->Flash->success(__('La factura ha sido guardada.'));
+
                 return $this->redirect(['action' => 'index']);
             }
             $this->Flash->error(__('No se pudo guardar la factura. Intente de nuevo.'));
@@ -121,6 +133,10 @@ class InvoicesController extends AppController
             'InvoiceObservations' => [
                 'Users',
                 'sort' => ['InvoiceObservations.created' => 'ASC'],
+            ],
+            'InvoiceDocuments' => [
+                'UploadedByUsers',
+                'sort' => ['InvoiceDocuments.created' => 'DESC'],
             ],
         ]);
         $roleName = $this->_getRoleName();
@@ -171,9 +187,17 @@ class InvoicesController extends AppController
         $pipelineLabels = InvoicePipelineService::STATUS_LABELS;
 
         $this->set(compact(
-            'invoice', 'editableFields', 'canAdvance', 'roleName',
-            'pipelineStatuses', 'pipelineLabels', 'currentStatus',
-            'visibleSections', 'isRejected', 'advanceErrors', 'nextStatus',
+            'invoice',
+            'editableFields',
+            'canAdvance',
+            'roleName',
+            'pipelineStatuses',
+            'pipelineLabels',
+            'currentStatus',
+            'visibleSections',
+            'isRejected',
+            'advanceErrors',
+            'nextStatus',
         ));
         $this->set($this->_getFormDropdowns());
     }
@@ -273,5 +297,60 @@ class InvoicesController extends AppController
                 ->where(['ApproverUsers.id IN' => $activeApproverIds])
                 ->all(),
         ];
+    }
+
+    public function uploadDocument($invoiceId = null)
+    {
+        $this->request->allowMethod(['post']);
+        $invoice = $this->Invoices->get($invoiceId);
+
+        $file = $this->request->getUploadedFile('file');
+        if (!$file) {
+            $this->Flash->error(__('No se recibió ningún archivo válido.'));
+
+            return $this->redirect(['action' => 'view', $invoiceId]);
+        }
+
+        $identity = $this->Authentication->getIdentity();
+        $documentService = new InvoiceDocumentService();
+        $result = $documentService->uploadDocument(
+            (int)$invoiceId,
+            $invoice->pipeline_status,
+            $file,
+            $identity ? (int)$identity->getIdentifier() : null,
+            $this->request->getData('document_type'),
+        );
+
+        if (is_string($result)) {
+            $this->Flash->error(__($result));
+        } else {
+            $this->Flash->success(__('El soporte ha sido subido.'));
+        }
+
+        return $this->redirect(['action' => 'view', $invoiceId]);
+    }
+
+    public function deleteDocument($invoiceId = null, $documentId = null)
+    {
+        $this->request->allowMethod(['post', 'delete']);
+        $invoice = $this->Invoices->get($invoiceId);
+
+        $documentService = new InvoiceDocumentService();
+        $documentsTable = TableRegistry::getTableLocator()->get('InvoiceDocuments');
+        $document = $documentsTable->get($documentId);
+
+        if (!$documentService->canDeleteDocument($document, $invoice->pipeline_status)) {
+            $this->Flash->error(__('No se puede eliminar un soporte de un estado anterior.'));
+
+            return $this->redirect(['action' => 'view', $invoiceId]);
+        }
+
+        if ($documentService->deleteDocument((int)$documentId)) {
+            $this->Flash->success(__('El soporte ha sido eliminado.'));
+        } else {
+            $this->Flash->error(__('No se pudo eliminar el soporte.'));
+        }
+
+        return $this->redirect(['action' => 'view', $invoiceId]);
     }
 }

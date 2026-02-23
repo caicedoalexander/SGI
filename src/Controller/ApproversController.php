@@ -20,6 +20,7 @@ class ApproversController extends AppController
             $approver = $this->Approvers->patchEntity($approver, $this->request->getData());
             if ($this->Approvers->save($approver)) {
                 $this->Flash->success('El aprobador ha sido guardado.');
+
                 return $this->redirect(['action' => 'index']);
             }
             $this->Flash->error('No se pudo guardar el aprobador.');
@@ -38,6 +39,7 @@ class ApproversController extends AppController
             $approver = $this->Approvers->patchEntity($approver, $this->request->getData());
             if ($this->Approvers->save($approver)) {
                 $this->Flash->success('El aprobador ha sido actualizado.');
+
                 return $this->redirect(['action' => 'index']);
             }
             $this->Flash->error('No se pudo actualizar el aprobador.');

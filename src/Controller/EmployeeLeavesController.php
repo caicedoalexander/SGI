@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use Cake\ORM\TableRegistry;
+use DateTime;
 
 class EmployeeLeavesController extends AppController
 {
@@ -66,6 +67,7 @@ class EmployeeLeavesController extends AppController
             $employeeLeave = $this->EmployeeLeaves->patchEntity($employeeLeave, $data);
             if ($this->EmployeeLeaves->save($employeeLeave)) {
                 $this->Flash->success(__('La solicitud de permiso ha sido creada.'));
+
                 return $this->redirect(['action' => 'index']);
             }
             $this->Flash->error(__('No se pudo crear la solicitud. Intente de nuevo.'));
@@ -88,12 +90,13 @@ class EmployeeLeavesController extends AppController
 
         if (!$this->_canApproveLeave($user, $employeeLeave)) {
             $this->Flash->error('No tiene permisos para aprobar este permiso.');
+
             return $this->redirect(['action' => 'view', $id]);
         }
 
         $employeeLeave->status = 'aprobado';
         $employeeLeave->approved_by = $user->id;
-        $employeeLeave->approved_at = new \DateTime();
+        $employeeLeave->approved_at = new DateTime();
 
         if ($this->EmployeeLeaves->save($employeeLeave)) {
             $this->Flash->success('Permiso aprobado.');
@@ -112,12 +115,13 @@ class EmployeeLeavesController extends AppController
 
         if (!$this->_canApproveLeave($user, $employeeLeave)) {
             $this->Flash->error('No tiene permisos para rechazar este permiso.');
+
             return $this->redirect(['action' => 'view', $id]);
         }
 
         $employeeLeave->status = 'rechazado';
         $employeeLeave->approved_by = $user->id;
-        $employeeLeave->approved_at = new \DateTime();
+        $employeeLeave->approved_at = new DateTime();
 
         $observations = $this->request->getData('observations');
         if ($observations) {

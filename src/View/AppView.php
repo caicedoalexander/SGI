@@ -15,7 +15,10 @@ declare(strict_types=1);
  */
 namespace App\View;
 
+use Cake\I18n\Date;
+use Cake\I18n\DateTime;
 use Cake\View\View;
+use DateTimeInterface;
 
 /**
  * Application View
@@ -40,7 +43,7 @@ class AppView extends View
      *
      * @param \DateTimeInterface|\Cake\I18n\Date|\Cake\I18n\DateTime|null $date
      */
-    public function formatDateEs($date): string
+    public function formatDateEs(DateTimeInterface|Date|DateTime|null $date): string
     {
         if (!$date) {
             return '—';

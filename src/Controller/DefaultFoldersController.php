@@ -8,6 +8,7 @@ use App\Controller\Trait\ExcelCatalogTrait;
 class DefaultFoldersController extends AppController
 {
     use ExcelCatalogTrait;
+
     public function index()
     {
         $defaultFolders = $this->paginate($this->DefaultFolders, ['order' => ['sort_order' => 'ASC']]);

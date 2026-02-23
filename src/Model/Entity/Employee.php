@@ -3,6 +3,8 @@ declare(strict_types=1);
 
 namespace App\Model\Entity;
 
+use Cake\Chronos\Chronos;
+use Cake\Chronos\ChronosDate;
 use Cake\ORM\Entity;
 
 class Employee extends Entity
@@ -28,6 +30,9 @@ class Employee extends Entity
         'hire_date' => true,
         'termination_date' => true,
         'salary' => true,
+        'tipo_contrato' => true,
+        'organizacion_temporal_id' => true,
+        'chaleco' => true,
         'eps' => true,
         'pension_fund' => true,
         'arl' => true,
@@ -40,5 +45,21 @@ class Employee extends Entity
     protected function _getFullName(): string
     {
         return trim(($this->first_name ?? '') . ' ' . ($this->last_name ?? ''));
+    }
+
+    protected function _getAge(): ?int
+    {
+        $birthDate = $this->birth_date;
+        if (!$birthDate) {
+            return null;
+        }
+        if ($birthDate instanceof ChronosDate) {
+            return (int)$birthDate->diffInYears(new ChronosDate('today'));
+        }
+        if ($birthDate instanceof Chronos) {
+            return (int)$birthDate->diffInYears(Chronos::now());
+        }
+
+        return null;
     }
 }

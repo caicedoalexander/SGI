@@ -3,8 +3,8 @@ declare(strict_types=1);
 
 namespace App\Model\Table;
 
-use Cake\ORM\Table;
 use Cake\ORM\RulesChecker;
+use Cake\ORM\Table;
 use Cake\Validation\Validator;
 
 class InvoicesTable extends Table
@@ -55,6 +55,11 @@ class InvoicesTable extends Table
         ]);
         $this->hasMany('InvoiceObservations', [
             'foreignKey' => 'invoice_id',
+        ]);
+        $this->hasMany('InvoiceDocuments', [
+            'foreignKey' => 'invoice_id',
+            'dependent' => true,
+            'cascadeCallbacks' => true,
         ]);
     }
 
@@ -143,7 +148,7 @@ class InvoicesTable extends Table
 
         $validator
             ->scalar('pipeline_status')
-            ->inList('pipeline_status', ['registro', 'aprobacion', 'contabilidad', 'tesoreria', 'pagada']);
+            ->inList('pipeline_status', ['aprobacion', 'contabilidad', 'tesoreria', 'pagada']);
 
         $validator
             ->scalar('ready_for_payment')

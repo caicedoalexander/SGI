@@ -4,13 +4,15 @@ declare(strict_types=1);
 namespace App\Service;
 
 use Cake\ORM\TableRegistry;
+use DateTime;
+use Exception;
 
 class ApprovalTokenService
 {
     public function generateToken(string $entityType, int $entityId, int $createdBy, int $hoursValid = 48): string
     {
         $token = bin2hex(random_bytes(32));
-        $expiresAt = new \DateTime("+{$hoursValid} hours");
+        $expiresAt = new DateTime("+{$hoursValid} hours");
 
         $table = TableRegistry::getTableLocator()->get('ApprovalTokens');
         $entity = $table->newEntity([
@@ -43,7 +45,7 @@ class ApprovalTokenService
         }
 
         // Check expiration
-        if ($record->expires_at < new \DateTime()) {
+        if ($record->expires_at < new DateTime()) {
             return null;
         }
 
@@ -57,6 +59,7 @@ class ApprovalTokenService
         ?string $ip,
         ?string $userAgent,
         ?string $approvalDate = null,
+        ?int $approvedByUserId = null,
     ): bool {
         $table = TableRegistry::getTableLocator()->get('ApprovalTokens');
         $record = $table->find()
@@ -67,11 +70,12 @@ class ApprovalTokenService
             return false;
         }
 
-        $record->used_at = new \DateTime();
+        $record->used_at = new DateTime();
         $record->action_taken = $action;
         $record->observations = $observations;
         $record->ip_address = $ip;
         $record->user_agent = $userAgent;
+        $record->approved_by_user_id = $approvedByUserId;
 
         if (!$table->save($record)) {
             return false;
@@ -100,7 +104,7 @@ class ApprovalTokenService
 
         $historyService = new InvoiceHistoryService();
         $userId = $createdBy ?? 0;
-        $parsedDate = !empty($approvalDate) ? new \DateTime($approvalDate) : new \DateTime();
+        $parsedDate = !empty($approvalDate) ? new DateTime($approvalDate) : new DateTime();
 
         if ($action === 'approve') {
             $originalStatus = $invoice->pipeline_status;
@@ -133,7 +137,7 @@ class ApprovalTokenService
                 try {
                     $notificationService = new NotificationService();
                     $notificationService->sendStatusChangeNotification($invoice, $originalStatus, $nextStatus);
-                } catch (\Exception $e) {
+                } catch (Exception $e) {
                     // Don't block on email failures
                 }
             }
@@ -179,10 +183,10 @@ class ApprovalTokenService
 
         if ($action === 'approve') {
             $leave->status = 'aprobado';
-            $leave->approved_at = new \DateTime();
+            $leave->approved_at = new DateTime();
         } elseif ($action === 'reject') {
             $leave->status = 'rechazado';
-            $leave->approved_at = new \DateTime();
+            $leave->approved_at = new DateTime();
         }
 
         return (bool)$table->save($leave);
@@ -205,13 +209,13 @@ class ApprovalTokenService
         try {
             $contain = [];
             if ($entityType === 'invoices') {
-                $contain = ['Providers'];
+                $contain = ['Providers', 'InvoiceDocuments'];
             } elseif ($entityType === 'employee_leaves') {
                 $contain = ['Employees', 'LeaveTypes'];
             }
 
             return $table->get($entityId, contain: $contain);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return null;
         }
     }

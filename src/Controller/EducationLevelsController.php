@@ -8,6 +8,7 @@ use App\Controller\Trait\ExcelCatalogTrait;
 class EducationLevelsController extends AppController
 {
     use ExcelCatalogTrait;
+
     public function index()
     {
         $educationLevels = $this->paginate($this->EducationLevels);

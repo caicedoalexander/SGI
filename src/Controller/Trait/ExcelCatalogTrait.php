@@ -38,6 +38,7 @@ trait ExcelCatalogTrait
         $file = $this->request->getUploadedFile('excel_file');
         if (!$file || $file->getError() !== UPLOAD_ERR_OK) {
             $this->Flash->error('No se recibió un archivo válido.');
+
             return $this->redirect(['action' => 'index']);
         }
 

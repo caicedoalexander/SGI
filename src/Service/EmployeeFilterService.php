@@ -10,9 +10,9 @@ class EmployeeFilterService
     /**
      * Apply search and filter parameters to an employees query.
      *
-     * @param SelectQuery $query Base query (already contains associations).
+     * @param \Cake\ORM\Query\SelectQuery $query Base query (already contains associations).
      * @param array<string,mixed> $params Query-string parameters.
-     * @return SelectQuery
+     * @return \Cake\ORM\Query\SelectQuery
      */
     public function apply(SelectQuery $query, array $params): SelectQuery
     {

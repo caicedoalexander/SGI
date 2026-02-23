@@ -56,7 +56,6 @@ if ($isRejected) {
 }
 
 $pipelineBadgeMap = [
-    'registro'      => ['Registro',      'bg-secondary'],
     'aprobacion'    => ['Aprobación',    'bg-info text-dark'],
     'contabilidad'  => ['Contabilidad',  'bg-primary'],
     'tesoreria'     => ['Tesorería',     'bg-warning text-dark'],
@@ -309,12 +308,13 @@ $ps = $pipelineBadgeMap[$currentStatus] ?? ['Desconocido', 'bg-dark'];
                     ]) ?>
                     <small class="text-muted">Se actualiza desde el enlace de aprobación</small>
                 </div>
+                <?php if ($invoice->area_approval_date): ?>
                 <div class="col-md-4">
                     <label class="form-label">Fecha Aprobación</label>
                     <input type="text" class="form-control" disabled
-                           value="<?= h($invoice->area_approval_date ? $this->formatDateEs($invoice->area_approval_date) : '') ?>">
-                    <small class="text-muted">Se actualiza desde el enlace de aprobación</small>
+                           value="<?= h($this->formatDateEs($invoice->area_approval_date)) ?>">
                 </div>
+                <?php endif; ?>
                 <div class="col-md-4">
                     <label class="form-label">Validación DIAN</label>
                     <?= $this->Form->control('dian_validation', array_merge(
@@ -466,6 +466,124 @@ $ps = $pipelineBadgeMap[$currentStatus] ?? ['Desconocido', 'bg-dark'];
         <?= $this->Form->end() ?>
     </div>
 </div>
+
+<!-- Soportes Documentales -->
+<?php
+$uploadableStatuses = ['aprobacion', 'contabilidad', 'tesoreria'];
+$showUploadSection = in_array($currentStatus, $uploadableStatuses, true);
+$documentsByStatus = [];
+if (!empty($invoice->invoice_documents)) {
+    foreach ($invoice->invoice_documents as $doc) {
+        $documentsByStatus[$doc->pipeline_status][] = $doc;
+    }
+}
+$statusLabels = [
+    'aprobacion' => 'Aprobación',
+    'contabilidad' => 'Contabilidad',
+    'tesoreria' => 'Tesorería',
+    'pagada' => 'Pagada',
+];
+$docIcon = fn(?string $mime): string => match(true) {
+    str_contains($mime ?? '', 'pdf') => 'bi-file-earmark-pdf',
+    str_contains($mime ?? '', 'image') => 'bi-file-earmark-image',
+    str_contains($mime ?? '', 'wordprocessingml') || str_contains($mime ?? '', 'msword') => 'bi-file-earmark-word',
+    str_contains($mime ?? '', 'spreadsheet') || str_contains($mime ?? '', 'excel') => 'bi-file-earmark-excel',
+    default => 'bi-file-earmark',
+};
+$docIconColor = fn(?string $mime): string => match(true) {
+    str_contains($mime ?? '', 'pdf') => '#dc3545',
+    str_contains($mime ?? '', 'image') => '#0dcaf0',
+    str_contains($mime ?? '', 'wordprocessingml') || str_contains($mime ?? '', 'msword') => '#0d6efd',
+    str_contains($mime ?? '', 'spreadsheet') || str_contains($mime ?? '', 'excel') => 'var(--primary-color)',
+    default => '#aaa',
+};
+$totalDocs = array_sum(array_map('count', $documentsByStatus));
+?>
+<?php if ($showUploadSection || !empty($documentsByStatus)): ?>
+<div class="card card-primary mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span class="d-flex align-items-center gap-2">
+            <i class="bi bi-paperclip"></i>
+            Soportes
+            <span class="sgi-folder-count"><?= $totalDocs ?> doc<?= $totalDocs !== 1 ? 's' : '' ?></span>
+        </span>
+        <?php if ($showUploadSection): ?>
+        <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#uploadInvoiceDocModal">
+            <i class="bi bi-upload me-1"></i>Subir Soporte
+        </button>
+        <?php endif; ?>
+    </div>
+
+    <?php if (empty($documentsByStatus)): ?>
+        <div class="p-3 text-center text-muted" style="font-size:.875rem">
+            <i class="bi bi-file-earmark-x me-1"></i>Sin soportes adjuntos
+        </div>
+    <?php else: ?>
+        <?php foreach ($documentsByStatus as $status => $docs): ?>
+        <div style="border-bottom:1px solid var(--border-color)">
+            <div class="px-3 py-2" style="background:#fafafa;font-size:.75rem;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:#888">
+                <?= $statusLabels[$status] ?? $status ?>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-sm table-hover mb-0">
+                    <tbody>
+                        <?php foreach ($docs as $doc): ?>
+                        <tr>
+                            <td>
+                                <i class="bi <?= $docIcon($doc->mime_type) ?> me-1"
+                                   style="color:<?= $docIconColor($doc->mime_type) ?>;font-size:1rem;vertical-align:middle"></i>
+                                <?= $this->Html->link(h($doc->file_name), '/' . $doc->file_path, ['target' => '_blank', 'class' => 'text-decoration-none']) ?>
+                            </td>
+                            <td style="color:#888;font-size:.8rem"><?= $doc->file_size ? $this->Number->toReadableSize($doc->file_size) : '—' ?></td>
+                            <td style="color:#888;font-size:.8rem"><?= $doc->has('uploaded_by_user') ? h($doc->uploaded_by_user->full_name) : '—' ?></td>
+                            <td style="color:#888;font-size:.8rem"><?= $doc->created?->format('d/m/Y H:i') ?></td>
+                            <td class="text-end">
+                                <div class="d-flex gap-1 justify-content-end">
+                                    <?= $this->Html->link('<i class="bi bi-box-arrow-up-right"></i>', '/' . $doc->file_path, ['class' => 'btn btn-sm btn-outline-primary', 'escape' => false, 'target' => '_blank', 'title' => 'Abrir']) ?>
+                                    <?php if ($doc->pipeline_status === $currentStatus): ?>
+                                    <?= $this->Form->postLink('<i class="bi bi-trash"></i>', ['action' => 'deleteDocument', $invoice->id, $doc->id], ['confirm' => '¿Eliminar este soporte?', 'class' => 'btn btn-sm btn-outline-danger', 'escape' => false, 'title' => 'Eliminar']) ?>
+                                    <?php endif; ?>
+                                </div>
+                            </td>
+                        </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <?php endforeach; ?>
+    <?php endif; ?>
+</div>
+<?php endif; ?>
+
+<?php if ($showUploadSection): ?>
+<!-- Modal: Subir Soporte -->
+<div class="modal fade" id="uploadInvoiceDocModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <?= $this->Form->create(null, ['url' => ['action' => 'uploadDocument', $invoice->id], 'type' => 'file']) ?>
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-upload me-2"></i>Subir Soporte</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <?= $this->Form->control('document_type', ['class' => 'form-control', 'label' => ['text' => 'Tipo de Documento (opcional)', 'class' => 'form-label'], 'placeholder' => 'Ej. Factura, Cotización, Soporte...']) ?>
+                </div>
+                <div class="mb-3">
+                    <?= $this->Form->control('file', ['type' => 'file', 'class' => 'form-control', 'label' => ['text' => 'Archivo', 'class' => 'form-label'], 'required' => true, 'accept' => '.pdf,.jpg,.jpeg,.png,.gif,.doc,.docx,.xls,.xlsx']) ?>
+                    <div class="form-text">Máximo 10 MB — PDF, imágenes, Word o Excel.</div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-dark" data-bs-dismiss="modal">Cancelar</button>
+                <button type="submit" class="btn btn-primary"><i class="bi bi-upload me-1"></i>Subir</button>
+            </div>
+            <?= $this->Form->end() ?>
+        </div>
+    </div>
+</div>
+<?php endif; ?>
 
 <!-- Agregar Observación -->
 <div class="card card-primary">

@@ -5,9 +5,12 @@ namespace App\Service;
 
 use Cake\ORM\Query\SelectQuery;
 use Cake\ORM\TableRegistry;
+use DateTimeInterface;
+use Exception;
+use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
+use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
-use PhpOffice\PhpSpreadsheet\IOFactory;
 use Psr\Http\Message\UploadedFileInterface;
 
 class ExcelService
@@ -32,7 +35,7 @@ class ExcelService
             $firstRow = method_exists($first, 'toArray') ? $first->toArray() : (array)$first;
             $headers = array_keys($firstRow);
             foreach ($headers as $col => $header) {
-                $cell = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($col + 1) . '1';
+                $cell = Coordinate::stringFromColumnIndex($col + 1) . '1';
                 $sheet->setCellValue($cell, $header);
                 $sheet->getStyle($cell)->getFont()->setBold(true);
             }
@@ -42,17 +45,17 @@ class ExcelService
                 $row = method_exists($entity, 'toArray') ? $entity->toArray() : (array)$entity;
                 foreach ($headers as $col => $header) {
                     $value = $row[$header] ?? '';
-                    if ($value instanceof \DateTimeInterface) {
+                    if ($value instanceof DateTimeInterface) {
                         $value = $value->format('Y-m-d H:i:s');
                     }
-                    $cell = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($col + 1) . ($rowNum + 2);
+                    $cell = Coordinate::stringFromColumnIndex($col + 1) . ($rowNum + 2);
                     $sheet->setCellValue($cell, $value);
                 }
             }
 
             // Auto-size columns
             foreach ($headers as $col => $header) {
-                $colLetter = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($col + 1);
+                $colLetter = Coordinate::stringFromColumnIndex($col + 1);
                 $sheet->getColumnDimension($colLetter)->setAutoSize(true);
             }
         }
@@ -89,8 +92,9 @@ class ExcelService
             $spreadsheet = IOFactory::load($tempFile);
             $sheet = $spreadsheet->getActiveSheet();
             $rows = $sheet->toArray();
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $result->errors[] = 'No se pudo leer el archivo: ' . $e->getMessage();
+
             return $result;
         } finally {
             if (file_exists($tempFile)) {
@@ -100,6 +104,7 @@ class ExcelService
 
         if (count($rows) < 2) {
             $result->errors[] = 'El archivo está vacío o solo tiene encabezados.';
+
             return $result;
         }
 
@@ -108,6 +113,7 @@ class ExcelService
 
         if ($keyIndex === false) {
             $result->errors[] = "El archivo debe contener una columna \"{$keyField}\".";
+
             return $result;
         }
 

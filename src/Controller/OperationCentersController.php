@@ -8,6 +8,7 @@ use App\Controller\Trait\ExcelCatalogTrait;
 class OperationCentersController extends AppController
 {
     use ExcelCatalogTrait;
+
     public function index()
     {
         $operationCenters = $this->paginate($this->OperationCenters);

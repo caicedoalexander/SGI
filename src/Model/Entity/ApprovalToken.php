@@ -18,5 +18,6 @@ class ApprovalToken extends Entity
         'observations' => true,
         'ip_address' => true,
         'user_agent' => true,
+        'approved_by_user_id' => true,
     ];
 }

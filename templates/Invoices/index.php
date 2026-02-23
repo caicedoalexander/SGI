@@ -13,7 +13,6 @@ $pageTitle = $isAllView ? 'Todas las Facturas' : 'Mis Facturas';
 $this->assign('title', $pageTitle);
 
 $pipelineBadges = [
-    'registro'      => ['Registro',      'bg-secondary'],
     'aprobacion'    => ['Aprobación',    'bg-info text-dark'],
     'contabilidad'  => ['Contabilidad',  'bg-primary'],
     'tesoreria'     => ['Tesorería',     'bg-warning text-dark'],
@@ -23,7 +22,6 @@ $pipelineBadges = [
 $query = $this->request->getQueryParams();
 $hasFilters = !empty(array_filter($query, fn($v) => $v !== '' && $v !== null));
 $pipelineOptions = [
-    'registro' => 'Registro',
     'aprobacion' => 'Aprobación',
     'contabilidad' => 'Contabilidad',
     'tesoreria' => 'Tesorería',

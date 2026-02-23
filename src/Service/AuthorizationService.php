@@ -48,6 +48,7 @@ class AuthorizationService
         }
 
         $perm = $permissions[$module];
+
         return match ($action) {
             'view', 'index' => (bool)$perm['can_view'],
             'add' => (bool)$perm['can_create'],
@@ -79,6 +80,7 @@ class AuthorizationService
         }
 
         $this->cache[$roleId] = $result;
+
         return $result;
     }
 

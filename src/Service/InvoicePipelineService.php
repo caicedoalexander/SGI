@@ -5,15 +5,16 @@ namespace App\Service;
 
 use App\Constants\RoleConstants;
 use App\Model\Entity\Invoice;
+use Cake\Core\Configure;
 use Cake\ORM\TableRegistry;
+use Exception;
 
 class InvoicePipelineService
 {
     // Pipeline statuses in order
-    public const STATUSES = ['registro', 'aprobacion', 'contabilidad', 'tesoreria', 'pagada'];
+    public const STATUSES = ['aprobacion', 'contabilidad', 'tesoreria', 'pagada'];
 
     public const STATUS_LABELS = [
-        'registro' => 'Registro',
         'aprobacion' => 'Aprobación',
         'contabilidad' => 'Contabilidad',
         'tesoreria' => 'Tesorería',
@@ -21,7 +22,6 @@ class InvoicePipelineService
     ];
 
     public const STATUS_ICONS = [
-        'registro' => 'bi-search',
         'aprobacion' => 'bi-check-circle',
         'contabilidad' => 'bi-calculator',
         'tesoreria' => 'bi-bank',
@@ -30,10 +30,10 @@ class InvoicePipelineService
 
     // Which statuses each role can see/work with
     private const ROLE_VISIBLE_STATUSES = [
-        RoleConstants::REGISTRO_REVISION => ['registro'],
+        RoleConstants::REGISTRO_REVISION => ['aprobacion'],
         RoleConstants::CONTABILIDAD      => ['aprobacion', 'contabilidad'],
         RoleConstants::TESORERIA         => ['tesoreria'],
-        RoleConstants::ADMIN             => ['registro', 'aprobacion', 'contabilidad', 'tesoreria', 'pagada'],
+        RoleConstants::ADMIN             => ['aprobacion', 'contabilidad', 'tesoreria', 'pagada'],
     ];
 
     // All fields available for Admin in any status
@@ -41,7 +41,7 @@ class InvoicePipelineService
         'invoice_number', 'registration_date', 'issue_date', 'due_date',
         'document_type', 'purchase_order', 'provider_id', 'operation_center_id',
         'detail', 'amount', 'expense_type_id', 'cost_center_id',
-        'confirmed_by', 'approver_id', 'area_approval', 'area_approval_date',
+        'confirmed_by', 'approver_id', 'area_approval',
         'dian_validation', 'accrued', 'accrual_date', 'ready_for_payment',
         'payment_status', 'payment_date', 'pipeline_status',
     ];
@@ -49,7 +49,7 @@ class InvoicePipelineService
     // Fields editable by role in each status
     private const EDITABLE_FIELDS = [
         RoleConstants::REGISTRO_REVISION => [
-            'registro' => [
+            'aprobacion' => [
                 'invoice_number', 'registration_date', 'issue_date', 'due_date',
                 'document_type', 'purchase_order', 'provider_id', 'operation_center_id',
                 'detail', 'amount', 'expense_type_id', 'cost_center_id',
@@ -81,7 +81,7 @@ class InvoicePipelineService
 
     // Fields required before advancing from each status
     private const TRANSITION_REQUIREMENTS = [
-        'registro' => [
+        'aprobacion' => [
             [
                 'field' => 'approver_id',
                 'not_empty' => true,
@@ -92,8 +92,6 @@ class InvoicePipelineService
                 'value' => 'Aprobada',
                 'label' => 'Validación DIAN debe ser "Aprobada"',
             ],
-        ],
-        'aprobacion' => [
             [
                 'field' => 'accrued',
                 'value' => true,
@@ -128,7 +126,6 @@ class InvoicePipelineService
 
     // Next status transitions
     public const TRANSITIONS = [
-        'registro'      => 'aprobacion',
         'aprobacion'    => 'contabilidad',
         'contabilidad'  => 'tesoreria',
         'tesoreria'     => 'pagada',
@@ -161,12 +158,13 @@ class InvoicePipelineService
         }
 
         // Admin: show sections up to the current state
+        // STATUSES: aprobacion(0), contabilidad(1), tesoreria(2), pagada(3)
         $statusIndex = $this->getStatusIndex($status);
         $sections = ['general', 'dates', 'classification', 'revision'];
         if ($statusIndex >= 1) {
             $sections[] = 'accounting';
         }
-        if ($statusIndex >= 3) {
+        if ($statusIndex >= 2) {
             $sections[] = 'treasury';
         }
 
@@ -187,9 +185,9 @@ class InvoicePipelineService
      */
     public function validateTransitionRequirements(object $invoice, string $fromStatus): array
     {
-        // Rejection at registro blocks all advancement
-        if ($fromStatus === 'registro' && $this->isRejected($invoice)) {
-            return ['La factura fue rechazada en Registro. El flujo ha terminado.'];
+        // Rejection blocks all advancement
+        if ($this->isRejected($invoice)) {
+            return ['La factura fue rechazada. El flujo ha terminado.'];
         }
 
         $errors = [];
@@ -243,12 +241,14 @@ class InvoicePipelineService
         }
 
         $allowed = $this->getEditableFields($roleName, $status);
+
         return array_intersect_key($data, array_flip($allowed));
     }
 
     public function getStatusIndex(string $status): int
     {
         $index = array_search($status, self::STATUSES);
+
         return $index !== false ? $index : 0;
     }
 
@@ -312,16 +312,11 @@ class InvoicePipelineService
                 }
 
                 return true;
-            }
+            },
         );
 
         if ($saved && $advanceNextStatus) {
-            // When advancing to 'aprobacion', send approval link instead of generic notification
-            if ($advanceNextStatus === 'aprobacion' && !empty($invoice->approver_id)) {
-                $this->sendApprovalLink($invoice, $userId);
-            } else {
-                $this->sendNotification($invoice, $currentStatus, $advanceNextStatus);
-            }
+            $this->sendNotification($invoice, $currentStatus, $advanceNextStatus);
         }
 
         return [
@@ -372,11 +367,7 @@ class InvoicePipelineService
         $historyService = new InvoiceHistoryService();
         $historyService->recordStatusChange($invoice->id, $currentStatus, $nextStatus, $userId);
 
-        if ($nextStatus === 'aprobacion' && !empty($invoice->approver_id)) {
-            $this->sendApprovalLink($invoice, $userId);
-        } else {
-            $this->sendNotification($invoice, $currentStatus, $nextStatus);
-        }
+        $this->sendNotification($invoice, $currentStatus, $nextStatus);
 
         return ['success' => true, 'error' => null, 'nextStatus' => $nextStatus];
     }
@@ -398,12 +389,12 @@ class InvoicePipelineService
             $tokenService = new ApprovalTokenService();
             $token = $tokenService->generateToken('invoices', $invoice->id, $userId);
 
-            $baseUrl = \Cake\Core\Configure::read('App.fullBaseUrl', '');
+            $baseUrl = Configure::read('App.fullBaseUrl', '');
             $approvalUrl = $baseUrl . '/approve/' . $token;
 
             $notificationService = new NotificationService();
             $notificationService->sendApprovalLinkNotification($invoice, $approvalUrl);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             // Don't block on email failures
         }
     }
@@ -413,7 +404,7 @@ class InvoicePipelineService
         try {
             $notificationService = new NotificationService();
             $notificationService->sendStatusChangeNotification($invoice, $fromStatus, $toStatus);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             // Don't block on email failures
         }
     }

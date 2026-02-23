@@ -38,6 +38,7 @@ class SystemSettingsController extends AppController
             }
 
             $this->Flash->success('Configuración SMTP actualizada.');
+
             return $this->redirect(['action' => 'index']);
         }
 

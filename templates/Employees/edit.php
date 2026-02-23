@@ -110,8 +110,36 @@ $this->assign('title', 'Editar Empleado: ' . $employee->full_name);
                 <?= $this->Form->control('salary', ['class' => 'form-control currency-input', 'label' => ['text' => 'Salario', 'class' => 'form-label'], 'type' => 'text']) ?>
             </div>
         </div>
+        <div class="row">
+            <div class="col-md-3 mb-3">
+                <?= $this->Form->control('tipo_contrato', [
+                    'class' => 'form-select',
+                    'label' => ['text' => 'Tipo de Contrato', 'class' => 'form-label'],
+                    'type' => 'select',
+                    'options' => ['Fijo' => 'Fijo', 'Indefinido' => 'Indefinido', 'Temporal' => 'Temporal'],
+                    'empty' => '-- Seleccione --',
+                    'id' => 'tipo-contrato',
+                ]) ?>
+            </div>
+            <div class="col-md-3 mb-3" id="org-temporal-wrapper" style="<?= ($employee->tipo_contrato ?? '') !== 'Temporal' ? 'display:none' : '' ?>">
+                <?= $this->Form->control('organizacion_temporal_id', ['class' => 'form-select', 'label' => ['text' => 'Organización Temporal', 'class' => 'form-label'], 'empty' => '-- Seleccione --']) ?>
+            </div>
+            <div class="col-md-3 mb-3">
+                <?= $this->Form->control('chaleco', ['class' => 'form-control', 'label' => ['text' => 'Chaleco', 'class' => 'form-label'], 'maxlength' => 20]) ?>
+            </div>
+        </div>
     </div>
 </div>
+<?php $this->Html->scriptStart(['block' => true]); ?>
+document.addEventListener('DOMContentLoaded', function() {
+    var tipoContrato = document.getElementById('tipo-contrato');
+    var orgWrapper = document.getElementById('org-temporal-wrapper');
+    function toggleOrg() {
+        orgWrapper.style.display = tipoContrato.value === 'Temporal' ? '' : 'none';
+    }
+    tipoContrato.addEventListener('change', toggleOrg);
+});
+<?php $this->Html->scriptEnd(); ?>
 
 <!-- Imagen de Perfil y Observaciones -->
 <div class="card shadow-sm mb-4">

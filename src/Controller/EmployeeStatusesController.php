@@ -8,6 +8,7 @@ use App\Controller\Trait\ExcelCatalogTrait;
 class EmployeeStatusesController extends AppController
 {
     use ExcelCatalogTrait;
+
     public function index()
     {
         $employeeStatuses = $this->paginate($this->EmployeeStatuses);

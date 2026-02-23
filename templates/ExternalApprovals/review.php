@@ -4,11 +4,17 @@
  * @var string $token
  * @var object $tokenRecord
  * @var object $entity
+ * @var object $currentUser
  */
 $this->assign('title', 'Revisión de Aprobación');
 
 $entityType = $tokenRecord->entity_type;
 ?>
+
+<div class="alert alert-info d-flex align-items-center gap-2 mb-3" style="font-size:.875rem">
+    <i class="bi bi-person-check"></i>
+    <span>Aprobando como: <strong><?= h($currentUser->full_name) ?></strong></span>
+</div>
 
 <div class="card card-primary mb-4">
     <div class="card-header d-flex align-items-center gap-3">
@@ -63,6 +69,21 @@ $entityType = $tokenRecord->entity_type;
             </div>
         <?php endif; ?>
     </div>
+
+    <?php if ($entityType === 'invoices' && !empty($entity->invoice_documents)): ?>
+    <div style="border-top:1px solid var(--border-color);">
+        <div class="sgi-section-title">Soportes</div>
+        <div class="px-3 pb-3">
+            <?php foreach ($entity->invoice_documents as $doc): ?>
+            <div class="d-flex align-items-center gap-2 mb-1">
+                <i class="bi bi-file-earmark me-1" style="color:#888"></i>
+                <?= $this->Html->link(h($doc->file_name), '/' . $doc->file_path, ['target' => '_blank', 'class' => 'text-decoration-none', 'style' => 'font-size:.875rem']) ?>
+                <span style="color:#aaa;font-size:.75rem"><?= $doc->file_size ? $this->Number->toReadableSize($doc->file_size) : '' ?></span>
+            </div>
+            <?php endforeach; ?>
+        </div>
+    </div>
+    <?php endif; ?>
 
     <div style="border-top:1px solid var(--border-color);padding:1.25rem;">
         <?= $this->Form->create(null, ['url' => ['action' => 'process', $token]]) ?>

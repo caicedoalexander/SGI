@@ -6,7 +6,9 @@ namespace App\Controller;
 use App\Service\AuthorizationService;
 use App\Service\InvoicePipelineService;
 use Cake\Controller\Controller;
+use Cake\Event\EventInterface;
 use Cake\ORM\TableRegistry;
+use Exception;
 
 class AppController extends Controller
 {
@@ -40,6 +42,8 @@ class AppController extends Controller
         'SystemSettings' => 'system_settings',
         'EmployeeLeaves' => 'employee_leaves',
         'LeaveTypes' => 'leave_types',
+        'OrganizacionesTemporales' => 'organizaciones_temporales',
+        'EmployeeNovedades' => 'employee_novedades',
     ];
 
     /**
@@ -50,13 +54,13 @@ class AppController extends Controller
         return match ($action) {
             'index', 'view', 'export', 'all' => 'view',
             'add', 'addFolder', 'uploadDocument', 'import' => 'add',
-            'edit', 'advanceStatus', 'addObservation', 'testSmtp', 'approve', 'reject', 'generateApprovalLink' => 'edit',
+            'edit', 'advanceStatus', 'addObservation', 'testSmtp', 'approve', 'reject', 'generateApprovalLink', 'deactivate' => 'edit',
             'delete', 'deleteDocument' => 'delete',
             default => 'view',
         };
     }
 
-    public function beforeFilter(\Cake\Event\EventInterface $event): void
+    public function beforeFilter(EventInterface $event): void
     {
         parent::beforeFilter($event);
 
@@ -87,6 +91,7 @@ class AppController extends Controller
                 $perms[$module] = ['can_view' => true, 'can_create' => true, 'can_edit' => true, 'can_delete' => true];
             }
             $this->set('userPermissions', $perms);
+
             return;
         }
 
@@ -152,7 +157,7 @@ class AppController extends Controller
 
             $this->set('sidebarCounters', $counters);
             $this->set('totalInvoicesCount', $invoicesTable->find()->count());
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->set('sidebarCounters', []);
             $this->set('totalInvoicesCount', 0);
         }
@@ -183,6 +188,7 @@ class AppController extends Controller
         }
 
         $authService = new AuthorizationService();
+
         return $authService->isAllowed((int)$user->role_id, $roleName, $module, $action);
     }
 }

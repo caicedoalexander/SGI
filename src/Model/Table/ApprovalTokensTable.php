@@ -3,8 +3,8 @@ declare(strict_types=1);
 
 namespace App\Model\Table;
 
-use Cake\ORM\Table;
 use Cake\ORM\RulesChecker;
+use Cake\ORM\Table;
 use Cake\Validation\Validator;
 
 class ApprovalTokensTable extends Table
@@ -29,6 +29,10 @@ class ApprovalTokensTable extends Table
             'className' => 'Users',
             'foreignKey' => 'created_by',
             'joinType' => 'INNER',
+        ]);
+        $this->belongsTo('ApprovedByUsers', [
+            'className' => 'Users',
+            'foreignKey' => 'approved_by_user_id',
         ]);
     }
 

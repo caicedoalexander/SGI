@@ -3,8 +3,8 @@ declare(strict_types=1);
 
 namespace App\Model\Table;
 
-use Cake\ORM\Table;
 use Cake\ORM\RulesChecker;
+use Cake\ORM\Table;
 use Cake\Validation\Validator;
 
 class EmployeesTable extends Table
@@ -41,10 +41,23 @@ class EmployeesTable extends Table
         $this->belongsTo('CostCenters', [
             'foreignKey' => 'cost_center_id',
         ]);
+        $this->belongsTo('OrganizacionesTemporales', [
+            'foreignKey' => 'organizacion_temporal_id',
+        ]);
         $this->hasMany('EmployeeFolders', [
             'foreignKey' => 'employee_id',
             'dependent' => true,
             'cascadeCallbacks' => true,
+        ]);
+        $this->hasMany('EmployeeNovedades', [
+            'foreignKey' => 'employee_id',
+            'dependent' => true,
+            'cascadeCallbacks' => true,
+        ]);
+        $this->hasOne('ActiveNovedad', [
+            'className' => 'EmployeeNovedades',
+            'foreignKey' => 'employee_id',
+            'conditions' => ['ActiveNovedad.active' => true],
         ]);
     }
 
@@ -103,6 +116,16 @@ class EmployeesTable extends Table
             ->decimal('salary')
             ->allowEmptyString('salary');
 
+        $validator
+            ->scalar('tipo_contrato')
+            ->inList('tipo_contrato', ['Fijo', 'Indefinido', 'Temporal'], 'Tipo de contrato inválido.')
+            ->allowEmptyString('tipo_contrato');
+
+        $validator
+            ->scalar('chaleco')
+            ->maxLength('chaleco', 20)
+            ->allowEmptyString('chaleco');
+
         return $validator;
     }
 
@@ -118,6 +141,18 @@ class EmployeesTable extends Table
         $rules->add($rules->existsIn('supervisor_position_id', 'SupervisorPositions'), ['errorField' => 'supervisor_position_id', 'allowNullableNulls' => true]);
         $rules->add($rules->existsIn('operation_center_id', 'OperationCenters'), ['errorField' => 'operation_center_id', 'allowNullableNulls' => true]);
         $rules->add($rules->existsIn('cost_center_id', 'CostCenters'), ['errorField' => 'cost_center_id', 'allowNullableNulls' => true]);
+        $rules->add($rules->existsIn('organizacion_temporal_id', 'OrganizacionesTemporales'), ['errorField' => 'organizacion_temporal_id', 'allowNullableNulls' => true]);
+
+        $rules->add(function ($entity) {
+            if ($entity->tipo_contrato === 'Temporal' && empty($entity->organizacion_temporal_id)) {
+                return false;
+            }
+
+            return true;
+        }, 'requireOrgTemporal', [
+            'errorField' => 'organizacion_temporal_id',
+            'message' => 'Debe seleccionar una organización temporal cuando el tipo de contrato es Temporal.',
+        ]);
 
         return $rules;
     }

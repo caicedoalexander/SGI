@@ -23,7 +23,7 @@ class Invoice extends Entity
         'confirmed_by' => true,
         'approver_id' => true,
         'area_approval' => true,
-        'area_approval_date' => true,
+        'area_approval_date' => false,
         'dian_validation' => true,
         'accrued' => true,
         'accrual_date' => true,

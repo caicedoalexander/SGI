@@ -8,6 +8,7 @@ use App\Controller\Trait\ExcelCatalogTrait;
 class LeaveTypesController extends AppController
 {
     use ExcelCatalogTrait;
+
     public function index()
     {
         $leaveTypes = $this->paginate($this->LeaveTypes->find());
@@ -21,6 +22,7 @@ class LeaveTypesController extends AppController
             $leaveType = $this->LeaveTypes->patchEntity($leaveType, $this->request->getData());
             if ($this->LeaveTypes->save($leaveType)) {
                 $this->Flash->success(__('El tipo de permiso ha sido guardado.'));
+
                 return $this->redirect(['action' => 'index']);
             }
             $this->Flash->error(__('No se pudo guardar. Intente de nuevo.'));
@@ -35,6 +37,7 @@ class LeaveTypesController extends AppController
             $leaveType = $this->LeaveTypes->patchEntity($leaveType, $this->request->getData());
             if ($this->LeaveTypes->save($leaveType)) {
                 $this->Flash->success(__('El tipo de permiso ha sido actualizado.'));
+
                 return $this->redirect(['action' => 'index']);
             }
             $this->Flash->error(__('No se pudo actualizar. Intente de nuevo.'));
@@ -51,6 +54,7 @@ class LeaveTypesController extends AppController
         } else {
             $this->Flash->error(__('No se pudo eliminar. Intente de nuevo.'));
         }
+
         return $this->redirect(['action' => 'index']);
     }
 }

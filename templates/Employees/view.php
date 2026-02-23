@@ -92,6 +92,9 @@ foreach ($folders as $folder) {
             <?php if ($employee->has('employee_status') && $employee->employee_status): ?>
             <div class="mt-2">
                 <span class="badge bg-info"><?= h($employee->employee_status->name) ?></span>
+                <?php if ($employee->has('active_novedad') && $employee->active_novedad): ?>
+                    <span class="badge bg-warning text-dark ms-1"><?= h($employee->active_novedad->novedad_type) ?></span>
+                <?php endif; ?>
             </div>
             <?php endif; ?>
         </div>
@@ -107,7 +110,12 @@ foreach ($folders as $folder) {
             <?php if ($employee->birth_date): ?>
             <div class="sgi-data-row">
                 <span class="sgi-data-label">Fecha Nacimiento</span>
-                <span class="sgi-data-value"><?= $employee->birth_date->format('d/m/Y') ?></span>
+                <span class="sgi-data-value">
+                    <?= $employee->birth_date->format('d/m/Y') ?>
+                    <?php if ($employee->age !== null): ?>
+                        <span class="text-muted ms-1">(<?= $employee->age ?> años)</span>
+                    <?php endif; ?>
+                </span>
             </div>
             <?php endif; ?>
 
@@ -155,6 +163,27 @@ foreach ($folders as $folder) {
             <div class="sgi-data-row">
                 <span class="sgi-data-label">Centro de Costos</span>
                 <span class="sgi-data-value"><?= h($employee->cost_center->name) ?></span>
+            </div>
+            <?php endif; ?>
+
+            <?php if ($employee->tipo_contrato): ?>
+            <div class="sgi-data-row">
+                <span class="sgi-data-label">Tipo de Contrato</span>
+                <span class="sgi-data-value"><?= h($employee->tipo_contrato) ?></span>
+            </div>
+            <?php endif; ?>
+
+            <?php if ($employee->has('organizacion_temporal') && $employee->organizacion_temporal): ?>
+            <div class="sgi-data-row">
+                <span class="sgi-data-label">Organización Temporal</span>
+                <span class="sgi-data-value"><?= h($employee->organizacion_temporal->name) ?><?= $employee->organizacion_temporal->nit ? ' <span class="text-muted">(' . h($employee->organizacion_temporal->nit) . ')</span>' : '' ?></span>
+            </div>
+            <?php endif; ?>
+
+            <?php if ($employee->chaleco): ?>
+            <div class="sgi-data-row">
+                <span class="sgi-data-label">Chaleco</span>
+                <span class="sgi-data-value"><?= h($employee->chaleco) ?></span>
             </div>
             <?php endif; ?>
 
@@ -220,6 +249,128 @@ foreach ($folders as $folder) {
     </div>
     <?php endif; ?>
 
+</div>
+
+<!-- Novedades -->
+<div class="card card-primary mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span class="d-flex align-items-center gap-2">
+            <i class="bi bi-exclamation-triangle"></i>
+            Novedades
+        </span>
+        <?php if (!$employee->employee_status_id || $employee->employee_status_id !== 2): ?>
+        <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#addNovedadModal">
+            <i class="bi bi-plus-lg me-1"></i>Agregar Novedad
+        </button>
+        <?php endif; ?>
+    </div>
+
+    <?php if ($employee->has('active_novedad') && $employee->active_novedad): ?>
+    <div class="p-3" style="background:#fff8e1;border-bottom:1px solid var(--border-color)">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <span class="badge bg-warning text-dark me-2"><?= h($employee->active_novedad->novedad_type) ?></span>
+                <span class="text-muted" style="font-size:.8125rem">
+                    Desde <?= $employee->active_novedad->start_date->format('d/m/Y') ?>
+                    <?php if ($employee->active_novedad->end_date): ?>
+                        hasta <?= $employee->active_novedad->end_date->format('d/m/Y') ?>
+                    <?php endif; ?>
+                </span>
+                <?php if ($employee->active_novedad->observations): ?>
+                    <div style="font-size:.8rem;color:#666;margin-top:.25rem"><?= h($employee->active_novedad->observations) ?></div>
+                <?php endif; ?>
+            </div>
+            <?= $this->Form->postLink(
+                '<i class="bi bi-x-circle me-1"></i>Desactivar',
+                ['controller' => 'EmployeeNovedades', 'action' => 'deactivate', $employee->active_novedad->id],
+                ['confirm' => '¿Desactivar esta novedad?', 'class' => 'btn btn-sm btn-outline-danger', 'escape' => false]
+            ) ?>
+        </div>
+    </div>
+    <?php endif; ?>
+
+    <?php
+    $novedades = $employee->employee_novedades ?? [];
+    $inactiveNovedades = array_filter($novedades, fn($n) => !$n->active);
+    ?>
+    <?php if (!empty($inactiveNovedades)): ?>
+    <div class="table-responsive">
+        <table class="table table-sm table-hover mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Tipo</th>
+                    <th>Fecha Inicio</th>
+                    <th>Fecha Fin</th>
+                    <th>Observaciones</th>
+                    <th>Registrado por</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php foreach ($inactiveNovedades as $nov): ?>
+                <tr style="color:#888">
+                    <td><?= h($nov->novedad_type) ?></td>
+                    <td><?= $nov->start_date->format('d/m/Y') ?></td>
+                    <td><?= $nov->end_date ? $nov->end_date->format('d/m/Y') : '—' ?></td>
+                    <td style="font-size:.8rem"><?= h($nov->observations) ?: '—' ?></td>
+                    <td style="font-size:.8rem"><?= $nov->has('created_by_user') ? h($nov->created_by_user->full_name) : '—' ?></td>
+                </tr>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
+    </div>
+    <?php elseif (!($employee->has('active_novedad') && $employee->active_novedad)): ?>
+    <div class="p-3 text-center text-muted" style="font-size:.875rem">
+        <i class="bi bi-check-circle me-1"></i>Sin novedades registradas
+    </div>
+    <?php endif; ?>
+</div>
+
+<!-- Modal: Agregar Novedad -->
+<div class="modal fade" id="addNovedadModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <?= $this->Form->create(null, ['url' => ['controller' => 'EmployeeNovedades', 'action' => 'add', $employee->id]]) ?>
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-exclamation-triangle me-2"></i>Agregar Novedad</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <?php if ($employee->has('active_novedad') && $employee->active_novedad): ?>
+                <div class="alert alert-warning" style="font-size:.8125rem">
+                    <i class="bi bi-info-circle me-1"></i>La novedad activa actual será desactivada automáticamente.
+                </div>
+                <?php endif; ?>
+                <div class="mb-3">
+                    <?= $this->Form->control('novedad_type', [
+                        'class' => 'form-select',
+                        'label' => ['text' => 'Tipo de Novedad', 'class' => 'form-label'],
+                        'options' => array_combine(
+                            ['En Licencia', 'En Vacaciones', 'En Permiso', 'Compensado'],
+                            ['En Licencia', 'En Vacaciones', 'En Permiso', 'Compensado']
+                        ),
+                        'empty' => '-- Seleccione --',
+                        'required' => true,
+                    ]) ?>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <?= $this->Form->control('start_date', ['class' => 'form-control flatpickr-date', 'label' => ['text' => 'Fecha Inicio', 'class' => 'form-label'], 'type' => 'text', 'required' => true]) ?>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <?= $this->Form->control('end_date', ['class' => 'form-control flatpickr-date', 'label' => ['text' => 'Fecha Fin (opcional)', 'class' => 'form-label'], 'type' => 'text']) ?>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <?= $this->Form->control('observations', ['class' => 'form-control', 'label' => ['text' => 'Observaciones', 'class' => 'form-label'], 'rows' => 2]) ?>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-dark" data-bs-dismiss="modal">Cancelar</button>
+                <button type="submit" class="btn btn-primary"><i class="bi bi-save me-1"></i>Registrar</button>
+            </div>
+            <?= $this->Form->end() ?>
+        </div>
+    </div>
 </div>
 
 <!-- Gestión Documental -->

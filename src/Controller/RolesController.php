@@ -34,6 +34,7 @@ class RolesController extends AppController
                     $authService->savePermissionsForRole($role->id, $data['permissions']);
                 }
                 $this->Flash->success('El rol ha sido guardado.');
+
                 return $this->redirect(['action' => 'index']);
             }
             $this->Flash->error('No se pudo guardar el rol. Intente de nuevo.');
@@ -56,6 +57,7 @@ class RolesController extends AppController
                 $authService = new AuthorizationService();
                 $authService->savePermissionsForRole($role->id, $data['permissions'] ?? []);
                 $this->Flash->success('El rol ha sido actualizado.');
+
                 return $this->redirect(['action' => 'index']);
             }
             $this->Flash->error('No se pudo actualizar el rol. Intente de nuevo.');

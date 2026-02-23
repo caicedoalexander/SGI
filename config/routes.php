@@ -88,6 +88,18 @@ return function (RouteBuilder $routes): void {
             ['token' => '[a-f0-9]{64}', 'pass' => ['token']]
         );
 
+        // Invoice document management
+        $builder->connect(
+            '/invoices/upload-document/{invoiceId}',
+            ['controller' => 'Invoices', 'action' => 'uploadDocument'],
+            ['invoiceId' => '\d+', 'pass' => ['invoiceId']]
+        );
+        $builder->connect(
+            '/invoices/delete-document/{invoiceId}/{documentId}',
+            ['controller' => 'Invoices', 'action' => 'deleteDocument'],
+            ['invoiceId' => '\d+', 'documentId' => '\d+', 'pass' => ['invoiceId', 'documentId']]
+        );
+
         // Invoice generate approval link
         $builder->connect(
             '/invoices/generate-approval-link/{id}',
@@ -104,6 +116,18 @@ return function (RouteBuilder $routes): void {
         $builder->connect(
             '/employee-leaves/reject/{id}',
             ['controller' => 'EmployeeLeaves', 'action' => 'reject'],
+            ['id' => '\d+', 'pass' => ['id']]
+        );
+
+        // Employee novedades routes
+        $builder->connect(
+            '/employees/{employeeId}/novedades/add',
+            ['controller' => 'EmployeeNovedades', 'action' => 'add'],
+            ['employeeId' => '\d+', 'pass' => ['employeeId']]
+        );
+        $builder->connect(
+            '/employee-novedades/deactivate/{id}',
+            ['controller' => 'EmployeeNovedades', 'action' => 'deactivate'],
             ['id' => '\d+', 'pass' => ['id']]
         );
 

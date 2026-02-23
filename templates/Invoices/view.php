@@ -10,7 +10,6 @@
 $this->assign('title', 'Factura ' . ($invoice->invoice_number ?? '#' . $invoice->id));
 
 $pipelineBadgeMap = [
-    'registro'      => ['Registro',      'bg-secondary'],
     'aprobacion'    => ['Aprobación',    'bg-info text-dark'],
     'contabilidad'  => ['Contabilidad',  'bg-primary'],
     'tesoreria'     => ['Tesorería',     'bg-warning text-dark'],
@@ -291,6 +290,76 @@ $dianClass = match($invoice->dian_validation ?? '') {
         <?php endif; ?>
     </div>
 
+</div>
+
+<!-- Soportes Documentales (solo lectura) -->
+<?php
+$documentsByStatus = $documentsByStatus ?? [];
+$statusLabels = [
+    'aprobacion' => 'Aprobación',
+    'contabilidad' => 'Contabilidad',
+    'tesoreria' => 'Tesorería',
+    'pagada' => 'Pagada',
+];
+$docIcon = fn(?string $mime): string => match(true) {
+    str_contains($mime ?? '', 'pdf') => 'bi-file-earmark-pdf',
+    str_contains($mime ?? '', 'image') => 'bi-file-earmark-image',
+    str_contains($mime ?? '', 'wordprocessingml') || str_contains($mime ?? '', 'msword') => 'bi-file-earmark-word',
+    str_contains($mime ?? '', 'spreadsheet') || str_contains($mime ?? '', 'excel') => 'bi-file-earmark-excel',
+    default => 'bi-file-earmark',
+};
+$docIconColor = fn(?string $mime): string => match(true) {
+    str_contains($mime ?? '', 'pdf') => '#dc3545',
+    str_contains($mime ?? '', 'image') => '#0dcaf0',
+    str_contains($mime ?? '', 'wordprocessingml') || str_contains($mime ?? '', 'msword') => '#0d6efd',
+    str_contains($mime ?? '', 'spreadsheet') || str_contains($mime ?? '', 'excel') => 'var(--primary-color)',
+    default => '#aaa',
+};
+$totalDocs = array_sum(array_map('count', $documentsByStatus));
+?>
+<div class="card card-primary mb-4">
+    <div class="card-header">
+        <span class="d-flex align-items-center gap-2">
+            <i class="bi bi-paperclip"></i>
+            Soportes
+            <span class="sgi-folder-count"><?= $totalDocs ?> doc<?= $totalDocs !== 1 ? 's' : '' ?></span>
+        </span>
+    </div>
+
+    <?php if (empty($documentsByStatus)): ?>
+        <div class="p-3 text-center text-muted" style="font-size:.875rem">
+            <i class="bi bi-file-earmark-x me-1"></i>Sin soportes adjuntos
+        </div>
+    <?php else: ?>
+        <?php foreach ($documentsByStatus as $status => $docs): ?>
+        <div style="border-bottom:1px solid var(--border-color)">
+            <div class="px-3 py-2" style="background:#fafafa;font-size:.75rem;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:#888">
+                <?= $statusLabels[$status] ?? $status ?>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-sm table-hover mb-0">
+                    <tbody>
+                        <?php foreach ($docs as $doc): ?>
+                        <tr>
+                            <td>
+                                <i class="bi <?= $docIcon($doc->mime_type) ?> me-1"
+                                   style="color:<?= $docIconColor($doc->mime_type) ?>;font-size:1rem;vertical-align:middle"></i>
+                                <?= $this->Html->link(h($doc->file_name), '/' . $doc->file_path, ['target' => '_blank', 'class' => 'text-decoration-none']) ?>
+                            </td>
+                            <td style="color:#888;font-size:.8rem"><?= $doc->file_size ? $this->Number->toReadableSize($doc->file_size) : '—' ?></td>
+                            <td style="color:#888;font-size:.8rem"><?= $doc->has('uploaded_by_user') ? h($doc->uploaded_by_user->full_name) : '—' ?></td>
+                            <td style="color:#888;font-size:.8rem"><?= $doc->created?->format('d/m/Y H:i') ?></td>
+                            <td class="text-end">
+                                <?= $this->Html->link('<i class="bi bi-box-arrow-up-right"></i>', '/' . $doc->file_path, ['class' => 'btn btn-sm btn-outline-primary', 'escape' => false, 'target' => '_blank', 'title' => 'Abrir']) ?>
+                            </td>
+                        </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <?php endforeach; ?>
+    <?php endif; ?>
 </div>
 
 <!-- Historial de cambios -->

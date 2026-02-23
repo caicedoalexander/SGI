@@ -4,9 +4,11 @@ declare(strict_types=1);
 namespace App\Service;
 
 use App\Model\Entity\Invoice;
+use Cake\Log\Log;
 use Cake\Mailer\Mailer;
 use Cake\Mailer\TransportFactory;
 use Cake\ORM\TableRegistry;
+use Exception;
 
 class NotificationService
 {
@@ -45,7 +47,7 @@ class NotificationService
                 $mailer->setTransport('sgi_dynamic');
                 $mailer->setFrom(
                     $smtpConfig['smtp_from_email'],
-                    $smtpConfig['smtp_from_name'] ?? 'SGI'
+                    $smtpConfig['smtp_from_name'] ?? 'SGI',
                 );
                 $mailer->setTo($recipient->email);
                 $mailer->setSubject("SGI - Factura {$invoiceNumber} avanzó a {$toLabel}");
@@ -60,9 +62,9 @@ class NotificationService
                     ->setTemplate('invoice_status_changed')
                     ->setLayout('default');
                 $mailer->deliver();
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 // Log but don't block
-                \Cake\Log\Log::warning("Email notification failed for {$recipient->email}: " . $e->getMessage());
+                Log::warning("Email notification failed for {$recipient->email}: " . $e->getMessage());
             }
         }
     }
@@ -93,7 +95,7 @@ class NotificationService
                 $mailer->setTransport('sgi_dynamic');
                 $mailer->setFrom(
                     $smtpConfig['smtp_from_email'],
-                    $smtpConfig['smtp_from_name'] ?? 'SGI'
+                    $smtpConfig['smtp_from_name'] ?? 'SGI',
                 );
                 $mailer->setTo($recipient->email);
                 $mailer->setSubject("SGI - Solicitud de Aprobación: Factura {$invoiceNumber}");
@@ -109,8 +111,8 @@ class NotificationService
                     ->setTemplate('invoice_approval_request')
                     ->setLayout('default');
                 $mailer->deliver();
-            } catch (\Exception $e) {
-                \Cake\Log\Log::warning("Approval link email failed for {$recipient->email}: " . $e->getMessage());
+            } catch (Exception $e) {
+                Log::warning("Approval link email failed for {$recipient->email}: " . $e->getMessage());
             }
         }
     }
@@ -175,7 +177,6 @@ class NotificationService
     private function getStatusRoleMapping(): array
     {
         return [
-            'registro' => null,
             'aprobacion' => null,
             'contabilidad' => 'Contabilidad',
             'tesoreria' => 'Tesorería',
@@ -198,14 +199,14 @@ class NotificationService
             $mailer->setTransport('sgi_dynamic');
             $mailer->setFrom(
                 $smtpConfig['smtp_from_email'] ?? 'test@test.com',
-                $smtpConfig['smtp_from_name'] ?? 'SGI'
+                $smtpConfig['smtp_from_name'] ?? 'SGI',
             );
             $mailer->setTo($smtpConfig['smtp_from_email'] ?? 'test@test.com');
             $mailer->setSubject('SGI - Prueba de conexión SMTP');
             $mailer->deliver('Este es un correo de prueba del SGI.');
 
             return ['success' => true, 'message' => 'Conexión SMTP exitosa. Correo de prueba enviado.'];
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return ['success' => false, 'message' => 'Error: ' . $e->getMessage()];
         }
     }

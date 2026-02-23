@@ -15,7 +15,7 @@ $currentController = $this->request->getParam('controller');
 <head>
     <?= $this->Html->charset() ?>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>SGI-COPCSA - <?= $this->fetch('title') ?></title>
+    <title>SGI COPC - <?= $this->fetch('title') ?></title>
     <link rel="icon" type="image/svg+xml" href="<?= $this->Url->build('/favicon.svg') ?>">
     <link rel="icon" type="image/x-icon" href="<?= $this->Url->build('/favicon.ico') ?>">
     <!-- Bootstrap primero, luego nuestros estilos para poder sobreescribir -->
@@ -55,7 +55,7 @@ $currentController = $this->request->getParam('controller');
                     <i class="bi bi-building text-white" style="font-size:1rem;"></i>
                 </div>
                 <div>
-                    <div class="fw-bold text-white lh-1" style="font-size:1.05rem;letter-spacing:-.02em;">SGI-COPCSA</div>
+                    <div class="fw-bold text-white lh-1" style="font-size:1.05rem;letter-spacing:-.02em;">SGI COPC</div>
                     <div style="font-size:.55rem;letter-spacing:.1em;color:rgba(255,255,255,.3);text-transform:uppercase;margin-top:3px;">Sistema de Gestión Interna</div>
                 </div>
             </a>
@@ -161,6 +161,7 @@ $currentController = $this->request->getParam('controller');
                     $canView('education_levels') ? 'education_levels' : null,
                     $canView('default_folders') ? 'default_folders' : null,
                     $canView('leave_types') ? 'leave_types' : null,
+                    $canView('organizaciones_temporales') ? 'organizaciones_temporales' : null,
                 ]);
                 if (!empty($catalogoItems)): ?>
                 <li class="nav-heading">Catálogos</li>
@@ -251,6 +252,15 @@ $currentController = $this->request->getParam('controller');
                         '<i class="bi bi-list-check me-2"></i>Tipos de Permiso',
                         ['controller' => 'LeaveTypes', 'action' => 'index'],
                         ['class' => $navLink('LeaveTypes'), 'escape' => false]
+                    ) ?>
+                </li>
+                <?php endif; ?>
+                <?php if ($canView('organizaciones_temporales')): ?>
+                <li class="nav-item">
+                    <?= $this->Html->link(
+                        '<i class="bi bi-building-gear me-2"></i>Org. Temporales',
+                        ['controller' => 'OrganizacionesTemporales', 'action' => 'index'],
+                        ['class' => $navLink('OrganizacionesTemporales'), 'escape' => false]
                     ) ?>
                 </li>
                 <?php endif; ?>

@@ -177,7 +177,7 @@ $documentTypes = [
             </div>
         </div>
 
-        <?= $this->Form->hidden('pipeline_status', ['value' => 'registro']) ?>
+        <?= $this->Form->hidden('pipeline_status', ['value' => 'aprobacion']) ?>
 
         <div class="d-flex gap-2">
             <button type="submit" class="btn btn-primary">
