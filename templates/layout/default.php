@@ -15,7 +15,7 @@ $currentController = $this->request->getParam('controller');
 <head>
     <?= $this->Html->charset() ?>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>SGI - <?= $this->fetch('title') ?></title>
+    <title>SGI-COPCSA - <?= $this->fetch('title') ?></title>
     <link rel="icon" type="image/svg+xml" href="<?= $this->Url->build('/favicon.svg') ?>">
     <link rel="icon" type="image/x-icon" href="<?= $this->Url->build('/favicon.ico') ?>">
     <!-- Bootstrap primero, luego nuestros estilos para poder sobreescribir -->
@@ -55,7 +55,7 @@ $currentController = $this->request->getParam('controller');
                     <i class="bi bi-building text-white" style="font-size:1rem;"></i>
                 </div>
                 <div>
-                    <div class="fw-bold text-white lh-1" style="font-size:1.05rem;letter-spacing:-.02em;">SGI</div>
+                    <div class="fw-bold text-white lh-1" style="font-size:1.05rem;letter-spacing:-.02em;">SGI-COPCSA</div>
                     <div style="font-size:.55rem;letter-spacing:.1em;color:rgba(255,255,255,.3);text-transform:uppercase;margin-top:3px;">Sistema de Gestión Interna</div>
                 </div>
             </a>

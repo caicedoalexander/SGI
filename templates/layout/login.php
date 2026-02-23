@@ -8,7 +8,7 @@
 <head>
     <?= $this->Html->charset() ?>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>SGI - <?= $this->fetch('title') ?></title>
+    <title>SGI-COPCSA - <?= $this->fetch('title') ?></title>
     <link rel="icon" type="image/svg+xml" href="<?= $this->Url->build('/favicon.svg') ?>">
     <link rel="icon" type="image/x-icon" href="<?= $this->Url->build('/favicon.ico') ?>">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -29,7 +29,7 @@
                     <i class="bi bi-building text-white" style="font-size:1rem;"></i>
                 </div>
                 <div>
-                    <div class="fw-bold text-white lh-1" style="font-size:1.3rem;letter-spacing:-.02em;">SGI</div>
+                    <div class="fw-bold text-white lh-1" style="font-size:1.3rem;letter-spacing:-.02em;">SGI-COPCSA</div>
                     <!-- <div style="font-size:.55rem;letter-spacing:.1em;color:rgba(255,255,255,.3);text-transform:uppercase;margin-top:3px;">Sistema de Gestión Interna</div> -->
                 </div>
             </div>

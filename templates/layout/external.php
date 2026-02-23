@@ -8,7 +8,7 @@
 <head>
     <?= $this->Html->charset() ?>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>SGI - <?= $this->fetch('title') ?></title>
+    <title>SGI-COPCSA - <?= $this->fetch('title') ?></title>
     <link rel="icon" type="image/svg+xml" href="<?= $this->Url->build('/favicon.svg') ?>">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
@@ -31,7 +31,7 @@
                 <i class="bi bi-building text-white" style="font-size:.85rem;"></i>
             </div>
             <div>
-                <div class="fw-bold text-white" style="font-size:.95rem;letter-spacing:-.02em;">SGI</div>
+                <div class="fw-bold text-white" style="font-size:.95rem;letter-spacing:-.02em;">SGI-COPCSA</div>
                 <div style="font-size:.5rem;letter-spacing:.1em;color:rgba(255,255,255,.3);text-transform:uppercase;">Aprobación Externa</div>
             </div>
         </div>
