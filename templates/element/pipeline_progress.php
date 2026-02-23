@@ -21,17 +21,17 @@ $isPartialPayment = ($currentStatus === 'tesoreria' && $paymentStatus === 'Pago 
 ?>
 <?php
 $totalSteps = count($pipelineStatuses);
-$progressPercent = $totalSteps > 1 ? ($currentIndex / ($totalSteps - 1)) * 100 : 0;
+$progressPercent = $totalSteps > 0 ? ($currentIndex / ($totalSteps)) * 100 : 0;
 $progressColor = $isRejected ? '#dc3545' : 'var(--primary-color)';
 ?>
 <div class="pipeline-progress">
     <div class="d-flex align-items-center justify-content-between position-relative">
         <!-- Base line (gray) -->
         <div class="position-absolute"
-             style="top:24px;left:2.5%;right:2.5%;height:3px;background:#dee2e6;z-index:0;"></div>
+             style="top:24px;left:12.5%;right:12.5%;height:3px;background:#dee2e6;z-index:0;"></div>
         <!-- Progress line (colored) -->
         <div class="position-absolute"
-             style="top:24px;left:2.5%;width:<?= $progressPercent * 0.95 ?>%;height:3px;background:<?= $progressColor ?>;z-index:0;transition:width .5s ease,background .3s ease;"></div>
+             style="top:24px;left:12.5%;width:<?= $progressPercent ?>%;height:3px;background:<?= $progressColor ?>;z-index:0;transition:width .5s ease,background .3s ease;"></div>
 
         <?php foreach ($pipelineStatuses as $i => $status): ?>
             <?php
