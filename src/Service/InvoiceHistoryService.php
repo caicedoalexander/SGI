@@ -38,6 +38,19 @@ class InvoiceHistoryService
         }
     }
 
+    public function recordFieldChange(int $invoiceId, string $field, ?string $oldValue, ?string $newValue, int $userId): void
+    {
+        $historiesTable = TableRegistry::getTableLocator()->get('InvoiceHistories');
+        $history = $historiesTable->newEntity([
+            'invoice_id' => $invoiceId,
+            'user_id' => $userId,
+            'field_changed' => $field,
+            'old_value' => $oldValue,
+            'new_value' => $newValue,
+        ]);
+        $historiesTable->save($history);
+    }
+
     public function recordStatusChange(int $invoiceId, string $fromStatus, string $toStatus, int $userId): void
     {
         $historiesTable = TableRegistry::getTableLocator()->get('InvoiceHistories');

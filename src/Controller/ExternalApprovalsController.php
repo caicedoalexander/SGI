@@ -59,10 +59,11 @@ class ExternalApprovalsController extends AppController
         }
 
         $observations = $this->request->getData('observations');
+        $approvalDate = $this->request->getData('approval_date');
         $ip = $this->request->clientIp();
         $userAgent = $this->request->getHeaderLine('User-Agent');
 
-        $success = $this->tokenService->consumeToken($token, $action, $observations, $ip, $userAgent);
+        $success = $this->tokenService->consumeToken($token, $action, $observations, $ip, $userAgent, $approvalDate);
 
         $this->set(compact('success', 'action'));
         return $this->render('confirmed');

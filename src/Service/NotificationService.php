@@ -26,12 +26,7 @@ class NotificationService
             return;
         }
 
-        // When advancing to 'aprobacion', notify the assigned approver
-        if ($toStatus === 'aprobacion' && !empty($invoice->approver_id)) {
-            $recipients = $this->getApproverRecipient($invoice->approver_id);
-        } else {
-            $recipients = $this->getRecipientsForStatus($toStatus);
-        }
+        $recipients = $this->getRecipientsForStatus($toStatus);
 
         if (empty($recipients)) {
             return;
@@ -68,6 +63,54 @@ class NotificationService
             } catch (\Exception $e) {
                 // Log but don't block
                 \Cake\Log\Log::warning("Email notification failed for {$recipient->email}: " . $e->getMessage());
+            }
+        }
+    }
+
+    public function sendApprovalLinkNotification(Invoice $invoice, string $approvalUrl): void
+    {
+        $smtpConfig = $this->settings->getGroup('smtp');
+
+        if (empty($smtpConfig['smtp_host']) || empty($smtpConfig['smtp_from_email'])) {
+            return;
+        }
+
+        if (empty($invoice->approver_id)) {
+            return;
+        }
+
+        $recipients = $this->getApproverRecipient($invoice->approver_id);
+        if (empty($recipients)) {
+            return;
+        }
+
+        $this->configureTransport($smtpConfig);
+        $invoiceNumber = $invoice->invoice_number ?: '#' . $invoice->id;
+
+        foreach ($recipients as $recipient) {
+            try {
+                $mailer = new Mailer();
+                $mailer->setTransport('sgi_dynamic');
+                $mailer->setFrom(
+                    $smtpConfig['smtp_from_email'],
+                    $smtpConfig['smtp_from_name'] ?? 'SGI'
+                );
+                $mailer->setTo($recipient->email);
+                $mailer->setSubject("SGI - Solicitud de Aprobación: Factura {$invoiceNumber}");
+                $mailer->setEmailFormat('html');
+                $mailer->setViewVars([
+                    'invoiceNumber' => $invoiceNumber,
+                    'providerName' => $invoice->provider->name ?? '—',
+                    'amount' => $invoice->amount,
+                    'approvalUrl' => $approvalUrl,
+                    'recipientName' => $recipient->full_name ?? $recipient->username ?? '',
+                ]);
+                $mailer->viewBuilder()
+                    ->setTemplate('invoice_approval_request')
+                    ->setLayout('default');
+                $mailer->deliver();
+            } catch (\Exception $e) {
+                \Cake\Log\Log::warning("Approval link email failed for {$recipient->email}: " . $e->getMessage());
             }
         }
     }
@@ -132,8 +175,8 @@ class NotificationService
     private function getStatusRoleMapping(): array
     {
         return [
-            'registro' => 'Registro/Revisión',
-            'aprobacion' => 'Contabilidad',
+            'registro' => null,
+            'aprobacion' => null,
             'contabilidad' => 'Contabilidad',
             'tesoreria' => 'Tesorería',
             'pagada' => null,

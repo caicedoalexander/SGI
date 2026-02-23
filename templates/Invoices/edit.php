@@ -301,22 +301,19 @@ $ps = $pipelineBadgeMap[$currentStatus] ?? ['Desconocido', 'bg-dark'];
                 </div>
                 <div class="col-md-4">
                     <label class="form-label">Aprobación Área</label>
-                    <?= $this->Form->control('area_approval', array_merge(
-                        ['label' => false, 'options' => $approvalOptions],
-                        $canEdit('area_approval')
-                            ? ['class' => 'form-select']
-                            : ['class' => 'form-select', 'disabled' => true]
-                    )) ?>
+                    <?= $this->Form->control('area_approval', [
+                        'label' => false,
+                        'options' => $approvalOptions,
+                        'class' => 'form-select',
+                        'disabled' => true,
+                    ]) ?>
+                    <small class="text-muted">Se actualiza desde el enlace de aprobación</small>
                 </div>
                 <div class="col-md-4">
                     <label class="form-label">Fecha Aprobación</label>
-                    <?php if ($canEdit('area_approval_date')): ?>
-                        <input type="text" name="area_approval_date" class="form-control flatpickr-date"
-                               value="<?= h($invoice->area_approval_date?->format('Y-m-d') ?? '') ?>">
-                    <?php else: ?>
-                        <input type="text" class="form-control" disabled
-                               value="<?= h($invoice->area_approval_date ? $this->formatDateEs($invoice->area_approval_date) : '') ?>">
-                    <?php endif; ?>
+                    <input type="text" class="form-control" disabled
+                           value="<?= h($invoice->area_approval_date ? $this->formatDateEs($invoice->area_approval_date) : '') ?>">
+                    <small class="text-muted">Se actualiza desde el enlace de aprobación</small>
                 </div>
                 <div class="col-md-4">
                     <label class="form-label">Validación DIAN</label>

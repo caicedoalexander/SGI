@@ -55,7 +55,8 @@ class ApprovalTokenService
         string $action,
         ?string $observations,
         ?string $ip,
-        ?string $userAgent
+        ?string $userAgent,
+        ?string $approvalDate = null,
     ): bool {
         $table = TableRegistry::getTableLocator()->get('ApprovalTokens');
         $record = $table->find()
@@ -77,14 +78,14 @@ class ApprovalTokenService
         }
 
         // Apply action to the entity
-        return $this->applyAction($record->entity_type, $record->entity_id, $action);
+        return $this->applyAction($record->entity_type, $record->entity_id, $action, $observations, $record->created_by, $approvalDate);
     }
 
-    private function applyAction(string $entityType, int $entityId, string $action): bool
+    private function applyAction(string $entityType, int $entityId, string $action, ?string $observations, ?int $createdBy, ?string $approvalDate): bool
     {
         switch ($entityType) {
             case 'invoices':
-                return $this->applyInvoiceAction($entityId, $action);
+                return $this->applyInvoiceAction($entityId, $action, $observations, $createdBy, $approvalDate);
             case 'employee_leaves':
                 return $this->applyLeaveAction($entityId, $action);
             default:
@@ -92,21 +93,83 @@ class ApprovalTokenService
         }
     }
 
-    private function applyInvoiceAction(int $invoiceId, string $action): bool
+    private function applyInvoiceAction(int $invoiceId, string $action, ?string $observations, ?int $createdBy, ?string $approvalDate): bool
     {
         $table = TableRegistry::getTableLocator()->get('Invoices');
-        $invoice = $table->get($invoiceId);
+        $invoice = $table->get($invoiceId, contain: ['Providers']);
+
+        $historyService = new InvoiceHistoryService();
+        $userId = $createdBy ?? 0;
+        $parsedDate = !empty($approvalDate) ? new \DateTime($approvalDate) : new \DateTime();
 
         if ($action === 'approve') {
+            $originalStatus = $invoice->pipeline_status;
+            $invoice->area_approval = 'Aprobada';
+            $invoice->area_approval_date = $parsedDate;
+
             $pipeline = new InvoicePipelineService();
             $nextStatus = $pipeline->getNextStatus($invoice->pipeline_status);
             if ($nextStatus) {
                 $invoice->pipeline_status = $nextStatus;
-                return (bool)$table->save($invoice);
             }
+
+            if (!$table->save($invoice)) {
+                return false;
+            }
+
+            // Record history
+            $historyService->recordFieldChange($invoiceId, 'area_approval', 'Pendiente', 'Aprobada', $userId);
+            if ($nextStatus) {
+                $historyService->recordStatusChange($invoiceId, $originalStatus, $nextStatus, $userId);
+            }
+
+            // Save observations as invoice_observation
+            if (!empty($observations)) {
+                $this->saveInvoiceObservation($invoiceId, $observations, $userId);
+            }
+
+            // Send notification to Contabilidad
+            if ($nextStatus) {
+                try {
+                    $notificationService = new NotificationService();
+                    $notificationService->sendStatusChangeNotification($invoice, $originalStatus, $nextStatus);
+                } catch (\Exception $e) {
+                    // Don't block on email failures
+                }
+            }
+
+            return true;
+        }
+
+        if ($action === 'reject') {
+            $invoice->area_approval = 'Rechazada';
+            $invoice->area_approval_date = $parsedDate;
+
+            if (!$table->save($invoice)) {
+                return false;
+            }
+
+            $historyService->recordFieldChange($invoiceId, 'area_approval', 'Pendiente', 'Rechazada', $userId);
+
+            if (!empty($observations)) {
+                $this->saveInvoiceObservation($invoiceId, $observations, $userId);
+            }
+
+            return true;
         }
 
         return true;
+    }
+
+    private function saveInvoiceObservation(int $invoiceId, string $message, int $userId): void
+    {
+        $observationsTable = TableRegistry::getTableLocator()->get('InvoiceObservations');
+        $observation = $observationsTable->newEntity([
+            'invoice_id' => $invoiceId,
+            'user_id' => $userId,
+            'message' => $message,
+        ]);
+        $observationsTable->save($observation);
     }
 
     private function applyLeaveAction(int $leaveId, string $action): bool

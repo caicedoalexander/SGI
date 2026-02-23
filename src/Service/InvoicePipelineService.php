@@ -53,7 +53,7 @@ class InvoicePipelineService
                 'invoice_number', 'registration_date', 'issue_date', 'due_date',
                 'document_type', 'purchase_order', 'provider_id', 'operation_center_id',
                 'detail', 'amount', 'expense_type_id', 'cost_center_id',
-                'confirmed_by', 'approver_id', 'area_approval', 'area_approval_date',
+                'confirmed_by', 'approver_id',
                 'dian_validation',
             ],
         ],
@@ -83,9 +83,9 @@ class InvoicePipelineService
     private const TRANSITION_REQUIREMENTS = [
         'registro' => [
             [
-                'field' => 'area_approval',
-                'value' => 'Aprobada',
-                'label' => 'Aprobación de Área debe ser "Aprobada"',
+                'field' => 'approver_id',
+                'not_empty' => true,
+                'label' => 'Debe seleccionar un Aprobador',
             ],
             [
                 'field' => 'dian_validation',
@@ -316,7 +316,12 @@ class InvoicePipelineService
         );
 
         if ($saved && $advanceNextStatus) {
-            $this->sendNotification($invoice, $currentStatus, $advanceNextStatus);
+            // When advancing to 'aprobacion', send approval link instead of generic notification
+            if ($advanceNextStatus === 'aprobacion' && !empty($invoice->approver_id)) {
+                $this->sendApprovalLink($invoice, $userId);
+            } else {
+                $this->sendNotification($invoice, $currentStatus, $advanceNextStatus);
+            }
         }
 
         return [
@@ -367,7 +372,11 @@ class InvoicePipelineService
         $historyService = new InvoiceHistoryService();
         $historyService->recordStatusChange($invoice->id, $currentStatus, $nextStatus, $userId);
 
-        $this->sendNotification($invoice, $currentStatus, $nextStatus);
+        if ($nextStatus === 'aprobacion' && !empty($invoice->approver_id)) {
+            $this->sendApprovalLink($invoice, $userId);
+        } else {
+            $this->sendNotification($invoice, $currentStatus, $nextStatus);
+        }
 
         return ['success' => true, 'error' => null, 'nextStatus' => $nextStatus];
     }
@@ -381,6 +390,22 @@ class InvoicePipelineService
         $token = $tokenService->generateToken('invoices', $invoiceId, $userId);
 
         return $baseUrl . '/approve/' . $token;
+    }
+
+    private function sendApprovalLink(Invoice $invoice, int $userId): void
+    {
+        try {
+            $tokenService = new ApprovalTokenService();
+            $token = $tokenService->generateToken('invoices', $invoice->id, $userId);
+
+            $baseUrl = \Cake\Core\Configure::read('App.fullBaseUrl', '');
+            $approvalUrl = $baseUrl . '/approve/' . $token;
+
+            $notificationService = new NotificationService();
+            $notificationService->sendApprovalLinkNotification($invoice, $approvalUrl);
+        } catch (\Exception $e) {
+            // Don't block on email failures
+        }
     }
 
     private function sendNotification(Invoice $invoice, string $fromStatus, string $toStatus): void
