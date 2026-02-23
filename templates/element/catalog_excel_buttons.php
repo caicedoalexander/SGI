@@ -1,22 +1,21 @@
 <?php
 /**
  * Reusable Excel export/import buttons for catalog pages.
+ * Include inside a d-flex container alongside other buttons.
  *
  * @var \App\View\AppView $this
  * @var string $controller The controller name (e.g., 'CostCenters')
  */
 $controller = $controller ?? $this->request->getParam('controller');
 ?>
-<div class="d-flex gap-2">
-    <?= $this->Html->link(
-        '<i class="bi bi-download me-1"></i>Exportar Excel',
-        ['controller' => $controller, 'action' => 'export'],
-        ['class' => 'btn btn-outline-success btn-sm', 'escape' => false]
-    ) ?>
-    <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#importExcelModal">
-        <i class="bi bi-upload me-1"></i>Importar Excel
-    </button>
-</div>
+<?= $this->Html->link(
+    '<i class="bi bi-download me-1"></i>Exportar',
+    ['controller' => $controller, 'action' => 'export'],
+    ['class' => 'btn btn-outline-success btn-sm', 'escape' => false]
+) ?>
+<button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#importExcelModal">
+    <i class="bi bi-upload me-1"></i>Importar
+</button>
 
 <!-- Import Modal -->
 <div class="modal fade" id="importExcelModal" tabindex="-1">

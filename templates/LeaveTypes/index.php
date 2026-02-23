@@ -8,14 +8,15 @@ $this->assign('title', 'Tipos de Permiso');
 
 <div class="sgi-page-header d-flex justify-content-between align-items-center">
     <span class="sgi-page-title">Tipos de Permiso</span>
-    <?= $this->Html->link(
-        '<i class="bi bi-plus-lg me-1"></i>Nuevo Tipo',
-        ['action' => 'add'],
-        ['class' => 'btn btn-primary', 'escape' => false]
-    ) ?>
+    <div class="d-flex gap-2">
+        <?= $this->element('catalog_excel_buttons') ?>
+        <?= $this->Html->link(
+            '<i class="bi bi-plus-lg me-1"></i>Nuevo Tipo',
+            ['action' => 'add'],
+            ['class' => 'btn btn-primary', 'escape' => false]
+        ) ?>
+    </div>
 </div>
-
-<?= $this->element('catalog_excel_buttons') ?>
 
 <div class="card card-primary">
     <div class="table-responsive">

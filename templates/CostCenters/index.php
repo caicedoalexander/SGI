@@ -7,10 +7,11 @@ $this->assign('title', 'Centros de Costos');
 ?>
 <div class="sgi-page-header d-flex justify-content-between align-items-center">
     <span class="sgi-page-title">Centros de Costos</span>
-    <?= $this->Html->link('<i class="bi bi-plus-lg me-1"></i>Nuevo Centro', ['action' => 'add'], ['class' => 'btn btn-primary', 'escape' => false]) ?>
+    <div class="d-flex gap-2">
+        <?= $this->element('catalog_excel_buttons') ?>
+        <?= $this->Html->link('<i class="bi bi-plus-lg me-1"></i>Nuevo Centro', ['action' => 'add'], ['class' => 'btn btn-primary', 'escape' => false]) ?>
+    </div>
 </div>
-
-<?= $this->element('catalog_excel_buttons') ?>
 
 <div class="card shadow-sm">
     <div class="table-responsive">
