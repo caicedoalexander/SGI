@@ -5,7 +5,7 @@ namespace App\Service;
 
 use App\Constants\RoleConstants;
 use App\Model\Entity\Invoice;
-use Cake\Core\Configure;
+use Cake\Log\Log;
 use Cake\ORM\TableRegistry;
 use Exception;
 
@@ -260,12 +260,15 @@ class InvoicePipelineService
      *   - 'advanced'       => bool
      *   - 'nextStatus'     => ?string
      *   - 'advanceErrors'  => string[]   (warnings when save succeeded but advance did not)
+     *   - 'notificationErrors' => string[]  (notification failures, non-blocking)
+     *   - 'approvalLinkSent'   => bool
      */
     public function saveAndAdvance(
         Invoice $invoice,
         array $data,
         string $roleName,
         int $userId,
+        ?string $baseUrl = null,
     ): array {
         $invoicesTable = TableRegistry::getTableLocator()->get('Invoices');
         $historyService = new InvoiceHistoryService();
@@ -274,6 +277,8 @@ class InvoicePipelineService
         $filteredData = $this->filterEntityData($data, $roleName, $currentStatus);
         $canAdvance = $this->canAdvance($roleName, $currentStatus);
         $isRejected = $this->isRejected($invoice);
+
+        $originalApproverId = $invoice->approver_id;
 
         // Determine if we can advance with submitted data
         $advanceNextStatus = null;
@@ -315,8 +320,32 @@ class InvoicePipelineService
             },
         );
 
-        if ($saved && $advanceNextStatus) {
-            $this->sendNotification($invoice, $currentStatus, $advanceNextStatus);
+        $notificationErrors = [];
+        $approvalLinkSent = false;
+
+        if ($saved) {
+            // Send approval link when approver_id is newly assigned in 'aprobacion' state
+            if (
+                $currentStatus === 'aprobacion'
+                && !empty($invoice->approver_id)
+                && $invoice->approver_id !== $originalApproverId
+                && $baseUrl
+            ) {
+                $approvalResult = $this->trySendApprovalLink($invoice, $userId, $baseUrl);
+                if ($approvalResult['success']) {
+                    $approvalLinkSent = true;
+                } else {
+                    $notificationErrors[] = $approvalResult['error'];
+                }
+            }
+
+            // Send status change notification if pipeline advanced
+            if ($advanceNextStatus) {
+                $notifResult = $this->trySendNotification($invoice, $currentStatus, $advanceNextStatus);
+                if (!$notifResult['success']) {
+                    $notificationErrors[] = $notifResult['error'];
+                }
+            }
         }
 
         return [
@@ -324,6 +353,8 @@ class InvoicePipelineService
             'advanced' => (bool)$advanceNextStatus && (bool)$saved,
             'nextStatus' => $advanceNextStatus,
             'advanceErrors' => $postAdvanceErrors,
+            'notificationErrors' => $notificationErrors,
+            'approvalLinkSent' => $approvalLinkSent,
         ];
     }
 
@@ -367,9 +398,14 @@ class InvoicePipelineService
         $historyService = new InvoiceHistoryService();
         $historyService->recordStatusChange($invoice->id, $currentStatus, $nextStatus, $userId);
 
-        $this->sendNotification($invoice, $currentStatus, $nextStatus);
+        $notifResult = $this->trySendNotification($invoice, $currentStatus, $nextStatus);
 
-        return ['success' => true, 'error' => null, 'nextStatus' => $nextStatus];
+        return [
+            'success' => true,
+            'error' => null,
+            'nextStatus' => $nextStatus,
+            'notificationError' => $notifResult['error'],
+        ];
     }
 
     /**
@@ -383,29 +419,53 @@ class InvoicePipelineService
         return $baseUrl . '/approve/' . $token;
     }
 
-    private function sendApprovalLink(Invoice $invoice, int $userId): void
+    /**
+     * Try to generate token and send approval link email.
+     * Returns ['success' => bool, 'error' => ?string, 'url' => ?string].
+     */
+    public function trySendApprovalLink(Invoice $invoice, int $userId, string $baseUrl): array
     {
         try {
+            if (empty($invoice->approver_id)) {
+                return ['success' => false, 'error' => 'No hay aprobador asignado.', 'url' => null];
+            }
+
             $tokenService = new ApprovalTokenService();
             $token = $tokenService->generateToken('invoices', $invoice->id, $userId);
-
-            $baseUrl = Configure::read('App.fullBaseUrl', '');
             $approvalUrl = $baseUrl . '/approve/' . $token;
+
+            // Ensure invoice has provider loaded for the email template
+            if (!$invoice->has('provider') || empty($invoice->provider)) {
+                $invoicesTable = TableRegistry::getTableLocator()->get('Invoices');
+                $invoice = $invoicesTable->get($invoice->id, contain: ['Providers']);
+            }
 
             $notificationService = new NotificationService();
             $notificationService->sendApprovalLinkNotification($invoice, $approvalUrl);
+
+            return ['success' => true, 'error' => null, 'url' => $approvalUrl];
         } catch (Exception $e) {
-            // Don't block on email failures
+            Log::error('Error enviando link de aprobación para factura #' . $invoice->id . ': ' . $e->getMessage());
+
+            return ['success' => false, 'error' => 'No se pudo enviar el correo de aprobación: ' . $e->getMessage(), 'url' => null];
         }
     }
 
-    private function sendNotification(Invoice $invoice, string $fromStatus, string $toStatus): void
+    /**
+     * Try to send status change notification.
+     * Returns ['success' => bool, 'error' => ?string].
+     */
+    private function trySendNotification(Invoice $invoice, string $fromStatus, string $toStatus): array
     {
         try {
             $notificationService = new NotificationService();
             $notificationService->sendStatusChangeNotification($invoice, $fromStatus, $toStatus);
+
+            return ['success' => true, 'error' => null];
         } catch (Exception $e) {
-            // Don't block on email failures
+            Log::error('Error enviando notificación de cambio de estado para factura #' . $invoice->id . ': ' . $e->getMessage());
+
+            return ['success' => false, 'error' => 'No se pudo enviar la notificación de cambio de estado: ' . $e->getMessage()];
         }
     }
 }

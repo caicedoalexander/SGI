@@ -19,18 +19,22 @@ class NotificationService
         $this->settings = new SystemSettingsService();
     }
 
+    /**
+     * Send status change notification. Throws on critical failures.
+     */
     public function sendStatusChangeNotification(Invoice $invoice, string $fromStatus, string $toStatus): void
     {
         $smtpConfig = $this->settings->getGroup('smtp');
 
-        // Skip if SMTP not configured
         if (empty($smtpConfig['smtp_host']) || empty($smtpConfig['smtp_from_email'])) {
-            return;
+            throw new Exception('SMTP no configurado. Configure el correo en Ajustes del Sistema.');
         }
 
         $recipients = $this->getRecipientsForStatus($toStatus);
 
         if (empty($recipients)) {
+            Log::info("No hay destinatarios para notificación de estado '{$toStatus}' - factura #{$invoice->id}");
+
             return;
         }
 
@@ -41,6 +45,7 @@ class NotificationService
         $toLabel = $statusLabels[$toStatus] ?? $toStatus;
         $invoiceNumber = $invoice->invoice_number ?: '#' . $invoice->id;
 
+        $errors = [];
         foreach ($recipients as $recipient) {
             try {
                 $mailer = new Mailer();
@@ -63,57 +68,66 @@ class NotificationService
                     ->setLayout('default');
                 $mailer->deliver();
             } catch (Exception $e) {
-                // Log but don't block
-                Log::warning("Email notification failed for {$recipient->email}: " . $e->getMessage());
+                Log::error("Email notification failed for {$recipient->email}: " . $e->getMessage());
+                $errors[] = $recipient->email . ': ' . $e->getMessage();
             }
+        }
+
+        if (!empty($errors)) {
+            throw new Exception('Falló el envío a: ' . implode('; ', $errors));
         }
     }
 
+    /**
+     * Send approval link email to the assigned approver. Throws on failure.
+     */
     public function sendApprovalLinkNotification(Invoice $invoice, string $approvalUrl): void
     {
         $smtpConfig = $this->settings->getGroup('smtp');
 
         if (empty($smtpConfig['smtp_host']) || empty($smtpConfig['smtp_from_email'])) {
-            return;
+            throw new Exception('SMTP no configurado. Configure el correo en Ajustes del Sistema.');
         }
 
         if (empty($invoice->approver_id)) {
-            return;
+            throw new Exception('No hay aprobador asignado a la factura.');
         }
 
         $recipients = $this->getApproverRecipient($invoice->approver_id);
         if (empty($recipients)) {
-            return;
+            throw new Exception('El aprobador asignado no tiene un usuario activo o no tiene correo.');
         }
 
         $this->configureTransport($smtpConfig);
         $invoiceNumber = $invoice->invoice_number ?: '#' . $invoice->id;
 
         foreach ($recipients as $recipient) {
-            try {
-                $mailer = new Mailer();
-                $mailer->setTransport('sgi_dynamic');
-                $mailer->setFrom(
-                    $smtpConfig['smtp_from_email'],
-                    $smtpConfig['smtp_from_name'] ?? 'SGI',
-                );
-                $mailer->setTo($recipient->email);
-                $mailer->setSubject("SGI - Solicitud de Aprobación: Factura {$invoiceNumber}");
-                $mailer->setEmailFormat('html');
-                $mailer->setViewVars([
-                    'invoiceNumber' => $invoiceNumber,
-                    'providerName' => $invoice->provider->name ?? '—',
-                    'amount' => $invoice->amount,
-                    'approvalUrl' => $approvalUrl,
-                    'recipientName' => $recipient->full_name ?? $recipient->username ?? '',
-                ]);
-                $mailer->viewBuilder()
-                    ->setTemplate('invoice_approval_request')
-                    ->setLayout('default');
-                $mailer->deliver();
-            } catch (Exception $e) {
-                Log::warning("Approval link email failed for {$recipient->email}: " . $e->getMessage());
+            if (empty($recipient->email)) {
+                throw new Exception("El aprobador '{$recipient->full_name}' no tiene correo electrónico configurado.");
             }
+
+            $mailer = new Mailer();
+            $mailer->setTransport('sgi_dynamic');
+            $mailer->setFrom(
+                $smtpConfig['smtp_from_email'],
+                $smtpConfig['smtp_from_name'] ?? 'SGI',
+            );
+            $mailer->setTo($recipient->email);
+            $mailer->setSubject("SGI-COPCSA - Solicitud de Aprobación: Factura {$invoiceNumber}");
+            $mailer->setEmailFormat('html');
+            $mailer->setViewVars([
+                'invoiceNumber' => $invoiceNumber,
+                'providerName' => $invoice->provider->name ?? '—',
+                'amount' => $invoice->amount,
+                'approvalUrl' => $approvalUrl,
+                'recipientName' => $recipient->full_name ?? $recipient->username ?? '',
+            ]);
+            $mailer->viewBuilder()
+                ->setTemplate('invoice_approval_request')
+                ->setLayout('default');
+            $mailer->deliver();
+
+            Log::info("Approval link sent to {$recipient->email} for invoice #{$invoice->id}");
         }
     }
 

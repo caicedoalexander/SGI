@@ -164,6 +164,7 @@ class InvoicesController extends AppController
                 $this->request->getData(),
                 $roleName,
                 $user->id,
+                $this->_getBaseUrl(),
             );
 
             if ($result['saved']) {
@@ -175,6 +176,13 @@ class InvoicesController extends AppController
                     foreach ($result['advanceErrors'] as $err) {
                         $this->Flash->warning($err);
                     }
+                }
+
+                if (!empty($result['approvalLinkSent'])) {
+                    $this->Flash->success('Se envió el enlace de aprobación al aprobador por correo.');
+                }
+                foreach ($result['notificationErrors'] as $notifErr) {
+                    $this->Flash->warning($notifErr);
                 }
 
                 return $this->redirect(['action' => 'index']);
@@ -213,6 +221,9 @@ class InvoicesController extends AppController
         if ($result['success']) {
             $nextLabel = InvoicePipelineService::STATUS_LABELS[$result['nextStatus']] ?? $result['nextStatus'];
             $this->Flash->success(sprintf('Factura avanzada a: %s', $nextLabel));
+            if (!empty($result['notificationError'])) {
+                $this->Flash->warning($result['notificationError']);
+            }
 
             return $this->redirect(['action' => 'index']);
         }
@@ -225,16 +236,32 @@ class InvoicesController extends AppController
     public function generateApprovalLink($id = null)
     {
         $this->request->allowMethod(['post']);
-        $invoice = $this->Invoices->get($id);
+        $invoice = $this->Invoices->get($id, contain: ['Providers']);
         $user = $this->_getCurrentUser();
 
-        $scheme = $this->request->getHeaderLine('X-Forwarded-Proto') ?: $this->request->scheme();
-        $baseUrl = $scheme . '://' . $this->request->host();
-        $url = $this->pipeline->generateApprovalLink($invoice->id, $user->id, $baseUrl);
+        if (empty($invoice->approver_id)) {
+            $this->Flash->error('Debe asignar un aprobador antes de generar el enlace.');
 
-        $this->Flash->success('Enlace de aprobación generado (válido por 48h): ' . $url);
+            return $this->redirect(['action' => 'edit', $id]);
+        }
+
+        $baseUrl = $this->_getBaseUrl();
+        $result = $this->pipeline->trySendApprovalLink($invoice, $user->id, $baseUrl);
+
+        if ($result['success']) {
+            $this->Flash->success('Enlace de aprobación enviado por correo al aprobador (válido por 48h).');
+        } else {
+            $this->Flash->error('Error al enviar el enlace de aprobación: ' . $result['error']);
+        }
 
         return $this->redirect(['action' => 'view', $id]);
+    }
+
+    private function _getBaseUrl(): string
+    {
+        $scheme = $this->request->getHeaderLine('X-Forwarded-Proto') ?: $this->request->scheme();
+
+        return $scheme . '://' . $this->request->host();
     }
 
     public function addObservation($id = null)
