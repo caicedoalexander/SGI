@@ -71,16 +71,68 @@ $entityType = $tokenRecord->entity_type;
     </div>
 
     <?php if ($entityType === 'invoices' && !empty($entity->invoice_documents)): ?>
+    <?php
+    $docIcon = fn(?string $mime): string => match(true) {
+        str_contains($mime ?? '', 'pdf') => 'bi-file-earmark-pdf',
+        str_contains($mime ?? '', 'image') => 'bi-file-earmark-image',
+        str_contains($mime ?? '', 'wordprocessingml') || str_contains($mime ?? '', 'msword') => 'bi-file-earmark-word',
+        str_contains($mime ?? '', 'spreadsheet') || str_contains($mime ?? '', 'excel') => 'bi-file-earmark-excel',
+        default => 'bi-file-earmark',
+    };
+    $docIconColor = fn(?string $mime): string => match(true) {
+        str_contains($mime ?? '', 'pdf') => '#dc3545',
+        str_contains($mime ?? '', 'image') => '#0dcaf0',
+        str_contains($mime ?? '', 'wordprocessingml') || str_contains($mime ?? '', 'msword') => '#0d6efd',
+        str_contains($mime ?? '', 'spreadsheet') || str_contains($mime ?? '', 'excel') => 'var(--primary-color)',
+        default => '#aaa',
+    };
+    $statusLabels = ['aprobacion' => 'Aprobación', 'contabilidad' => 'Contabilidad', 'tesoreria' => 'Tesorería', 'pagada' => 'Pagada'];
+    $badgeColors  = ['aprobacion' => 'bg-info text-dark', 'contabilidad' => 'bg-primary', 'tesoreria' => 'bg-warning text-dark', 'pagada' => 'bg-success'];
+    ?>
     <div style="border-top:1px solid var(--border-color);">
         <div class="sgi-section-title">Soportes</div>
-        <div class="px-3 pb-3">
-            <?php foreach ($entity->invoice_documents as $doc): ?>
-            <div class="d-flex align-items-center gap-2 mb-1">
-                <i class="bi bi-file-earmark me-1" style="color:#888"></i>
-                <?= $this->Html->link(h($doc->file_name), '/' . $doc->file_path, ['target' => '_blank', 'class' => 'text-decoration-none', 'style' => 'font-size:.875rem']) ?>
-                <span style="color:#aaa;font-size:.75rem"><?= $doc->file_size ? $this->Number->toReadableSize($doc->file_size) : '' ?></span>
+        <div class="p-3">
+            <div class="row row-cols-1 row-cols-md-3 g-3">
+                <?php foreach ($entity->invoice_documents as $doc): ?>
+                <div class="col">
+                    <div style="border:1px solid var(--border-color);height:100%;display:flex;flex-direction:column;">
+                        <!-- Header: icono + nombre -->
+                        <div style="padding:.6rem .875rem;border-bottom:1px solid var(--border-color);background:#fafafa;display:flex;align-items:center;gap:.5rem;min-width:0;">
+                            <i class="bi <?= $docIcon($doc->mime_type) ?> flex-shrink-0"
+                               style="color:<?= $docIconColor($doc->mime_type) ?>;font-size:1.1rem;"></i>
+                            <span style="font-size:.78rem;font-weight:600;color:#222;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;" title="<?= h($doc->file_name) ?>">
+                                <?= h($doc->file_name) ?>
+                            </span>
+                        </div>
+                        <!-- Body: badge estado + fecha + tamaño -->
+                        <div style="padding:.6rem .875rem;flex:1;font-size:.78rem;color:#555;display:flex;flex-direction:column;gap:.3rem;">
+                            <?php if (!empty($doc->pipeline_status)): ?>
+                            <div>
+                                <span class="badge <?= $badgeColors[$doc->pipeline_status] ?? 'bg-secondary' ?>" style="font-size:.65rem;">
+                                    <?= $statusLabels[$doc->pipeline_status] ?? $doc->pipeline_status ?>
+                                </span>
+                            </div>
+                            <?php endif; ?>
+                            <div style="display:flex;align-items:center;gap:.35rem;color:#888;">
+                                <i class="bi bi-clock" style="font-size:.75rem;"></i>
+                                <span><?= $doc->created?->format('d/m/Y H:i') ?></span>
+                            </div>
+                            <?php if ($doc->file_size): ?>
+                            <div style="color:#aaa;font-size:.72rem;"><?= $this->Number->toReadableSize($doc->file_size) ?></div>
+                            <?php endif; ?>
+                        </div>
+                        <!-- Footer: botón abrir -->
+                        <div style="padding:.5rem .875rem;border-top:1px solid var(--border-color);text-align:right;">
+                            <?= $this->Html->link(
+                                '<i class="bi bi-box-arrow-up-right me-1"></i>Abrir',
+                                '/' . $doc->file_path,
+                                ['class' => 'btn btn-sm btn-outline-primary', 'escape' => false, 'target' => '_blank']
+                            ) ?>
+                        </div>
+                    </div>
+                </div>
+                <?php endforeach; ?>
             </div>
-            <?php endforeach; ?>
         </div>
     </div>
     <?php endif; ?>
