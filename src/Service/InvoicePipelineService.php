@@ -31,7 +31,7 @@ class InvoicePipelineService
     // Which statuses each role can see/work with
     private const ROLE_VISIBLE_STATUSES = [
         RoleConstants::REGISTRO_REVISION => ['aprobacion'],
-        RoleConstants::CONTABILIDAD      => ['aprobacion', 'contabilidad'],
+        RoleConstants::CONTABILIDAD      => ['contabilidad'],
         RoleConstants::TESORERIA         => ['tesoreria'],
         RoleConstants::ADMIN             => ['aprobacion', 'contabilidad', 'tesoreria', 'pagada'],
     ];
@@ -58,9 +58,6 @@ class InvoicePipelineService
             ],
         ],
         RoleConstants::CONTABILIDAD => [
-            'aprobacion' => [
-                'accrued', 'accrual_date', 'ready_for_payment',
-            ],
             'contabilidad' => [
                 'accrued', 'accrual_date', 'ready_for_payment',
             ],
@@ -92,6 +89,8 @@ class InvoicePipelineService
                 'value' => 'Aprobada',
                 'label' => 'Validación DIAN debe ser "Aprobada"',
             ],
+        ],
+        'contabilidad' => [
             [
                 'field' => 'accrued',
                 'value' => true,
@@ -102,8 +101,6 @@ class InvoicePipelineService
                 'not_empty' => true,
                 'label' => 'Fecha de Causación es requerida',
             ],
-        ],
-        'contabilidad' => [
             [
                 'field' => 'ready_for_payment',
                 'not_empty' => true,

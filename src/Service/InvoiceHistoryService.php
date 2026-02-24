@@ -8,6 +8,32 @@ use Cake\ORM\TableRegistry;
 
 class InvoiceHistoryService
 {
+    public const FIELD_LABELS = [
+        'invoice_number'      => 'Número de Factura',
+        'registration_date'   => 'Fecha de Registro',
+        'issue_date'          => 'Fecha de Emisión',
+        'due_date'            => 'Fecha de Vencimiento',
+        'document_type'       => 'Tipo de Documento',
+        'purchase_order'      => 'Orden de Compra',
+        'provider_id'         => 'Proveedor',
+        'operation_center_id' => 'Centro de Operación',
+        'detail'              => 'Detalle',
+        'amount'              => 'Valor',
+        'expense_type_id'     => 'Tipo de Gasto',
+        'cost_center_id'      => 'Centro de Costos',
+        'confirmed_by'        => 'Confirmado Por',
+        'approver_id'         => 'Aprobador',
+        'area_approval'       => 'Aprobación de Área',
+        'area_approval_date'  => 'Fecha de Aprobación de Área',
+        'dian_validation'     => 'Validación DIAN',
+        'accrued'             => 'Causada',
+        'accrual_date'        => 'Fecha de Causación',
+        'ready_for_payment'   => 'Lista para Pago',
+        'payment_status'      => 'Estado de Pago',
+        'payment_date'        => 'Fecha de Pago',
+        'pipeline_status'     => 'Estado del Pipeline',
+    ];
+
     public function recordChanges(Invoice $original, Invoice $modified, int $userId): void
     {
         $fieldsToTrack = [

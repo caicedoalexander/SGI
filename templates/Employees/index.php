@@ -15,12 +15,12 @@ $hasFilters = !empty(array_filter($query, fn($v) => $v !== '' && $v !== null));
     <span class="sgi-page-title">Empleados</span>
     <div class="d-flex gap-2">
         <?= $this->Html->link(
-            '<i class="bi bi-download me-1"></i>Exportar',
+            '<i class="bi bi-upload me-1"></i>Exportar',
             ['action' => 'export'],
             ['class' => 'btn btn-outline-success btn-sm', 'escape' => false]
         ) ?>
         <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#importExcelModal">
-            <i class="bi bi-upload me-1"></i>Importar
+            <i class="bi bi-download me-1"></i>Importar
         </button>
         <?= $this->Html->link(
             '<i class="bi bi-plus-lg me-1"></i>Nuevo Empleado',

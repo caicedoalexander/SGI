@@ -31,11 +31,18 @@ $pipelineOptions = [
 
 <div class="sgi-page-header d-flex justify-content-between align-items-center">
     <span class="sgi-page-title"><?= $pageTitle ?></span>
-    <?= $this->Html->link(
-        '<i class="bi bi-plus-lg me-1"></i>Nueva Factura',
-        ['action' => 'add'],
-        ['class' => 'btn btn-primary', 'escape' => false]
-    ) ?>
+    <div class="d-flex gap-2">
+        <?= $this->Html->link(
+            '<i class="bi bi-file-earmark-excel me-1"></i>Exportar',
+            ['action' => 'export'],
+            ['class' => 'btn btn-outline-success', 'escape' => false]
+        ) ?>
+        <?= $this->Html->link(
+            '<i class="bi bi-plus-lg me-1"></i>Nueva Factura',
+            ['action' => 'add'],
+            ['class' => 'btn btn-primary', 'escape' => false]
+        ) ?>
+    </div>
 </div>
 
 <!-- Search & Filters -->

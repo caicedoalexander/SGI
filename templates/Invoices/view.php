@@ -6,6 +6,7 @@
  * @var bool $isRejected
  * @var string[] $pipelineStatuses
  * @var string[] $pipelineLabels
+ * @var string[] $fieldLabels
  */
 $this->assign('title', 'Factura ' . ($invoice->invoice_number ?? '#' . $invoice->id));
 
@@ -331,34 +332,56 @@ $totalDocs = array_sum(array_map('count', $documentsByStatus));
             <i class="bi bi-file-earmark-x me-1"></i>Sin soportes adjuntos
         </div>
     <?php else: ?>
-        <?php foreach ($documentsByStatus as $status => $docs): ?>
-        <div style="border-bottom:1px solid var(--border-color)">
-            <div class="px-3 py-2" style="background:#fafafa;font-size:.75rem;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:#888">
-                <?= $statusLabels[$status] ?? $status ?>
-            </div>
-            <div class="table-responsive">
-                <table class="table table-sm table-hover mb-0">
-                    <tbody>
-                        <?php foreach ($docs as $doc): ?>
-                        <tr>
-                            <td>
-                                <i class="bi <?= $docIcon($doc->mime_type) ?> me-1"
-                                   style="color:<?= $docIconColor($doc->mime_type) ?>;font-size:1rem;vertical-align:middle"></i>
-                                <?= $this->Html->link(h($doc->file_name), '/' . $doc->file_path, ['target' => '_blank', 'class' => 'text-decoration-none']) ?>
-                            </td>
-                            <td style="color:#888;font-size:.8rem"><?= $doc->file_size ? $this->Number->toReadableSize($doc->file_size) : '—' ?></td>
-                            <td style="color:#888;font-size:.8rem"><?= $doc->has('uploaded_by_user') ? h($doc->uploaded_by_user->full_name) : '—' ?></td>
-                            <td style="color:#888;font-size:.8rem"><?= $doc->created?->format('d/m/Y H:i') ?></td>
-                            <td class="text-end">
-                                <?= $this->Html->link('<i class="bi bi-box-arrow-up-right"></i>', '/' . $doc->file_path, ['class' => 'btn btn-sm btn-outline-primary', 'escape' => false, 'target' => '_blank', 'title' => 'Abrir']) ?>
-                            </td>
-                        </tr>
-                        <?php endforeach; ?>
-                    </tbody>
-                </table>
+        <div class="p-3">
+            <div class="row row-cols-1 row-cols-md-3 g-3">
+                <?php foreach ($documentsByStatus as $status => $docs): ?>
+                    <?php foreach ($docs as $doc): ?>
+                    <div class="col">
+                        <div style="border:1px solid var(--border-color);height:100%;display:flex;flex-direction:column;">
+                            <!-- Card header: icono + nombre -->
+                            <div style="padding:.6rem .875rem;border-bottom:1px solid var(--border-color);background:#fafafa;display:flex;align-items:center;gap:.5rem;min-width:0;">
+                                <i class="bi <?= $docIcon($doc->mime_type) ?> flex-shrink-0"
+                                   style="color:<?= $docIconColor($doc->mime_type) ?>;font-size:1.1rem;"></i>
+                                <span style="font-size:.78rem;font-weight:600;color:#222;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;" title="<?= h($doc->file_name) ?>">
+                                    <?= h($doc->file_name) ?>
+                                </span>
+                            </div>
+                            <!-- Card body: badge estado + usuario + fecha + tamaño -->
+                            <div style="padding:.6rem .875rem;flex:1;font-size:.78rem;color:#555;display:flex;flex-direction:column;gap:.3rem;">
+                                <div>
+                                    <?php
+                                    $badgeColors = ['aprobacion' => 'bg-info text-dark', 'contabilidad' => 'bg-primary', 'tesoreria' => 'bg-warning text-dark', 'pagada' => 'bg-success'];
+                                    ?>
+                                    <span class="badge <?= $badgeColors[$status] ?? 'bg-secondary' ?>" style="font-size:.65rem;">
+                                        <?= $statusLabels[$status] ?? $status ?>
+                                    </span>
+                                </div>
+                                <div style="display:flex;align-items:center;gap:.35rem;color:#666;">
+                                    <i class="bi bi-person" style="font-size:.8rem;"></i>
+                                    <span><?= $doc->has('uploaded_by_user') ? h($doc->uploaded_by_user->full_name) : '—' ?></span>
+                                </div>
+                                <div style="display:flex;align-items:center;gap:.35rem;color:#888;">
+                                    <i class="bi bi-clock" style="font-size:.75rem;"></i>
+                                    <span><?= $doc->created?->format('d/m/Y H:i') ?></span>
+                                </div>
+                                <?php if ($doc->file_size): ?>
+                                <div style="color:#aaa;font-size:.72rem;"><?= $this->Number->toReadableSize($doc->file_size) ?></div>
+                                <?php endif; ?>
+                            </div>
+                            <!-- Card footer: botón abrir -->
+                            <div style="padding:.5rem .875rem;border-top:1px solid var(--border-color);text-align:right;">
+                                <?= $this->Html->link(
+                                    '<i class="bi bi-box-arrow-up-right me-1"></i>Abrir',
+                                    '/' . $doc->file_path,
+                                    ['class' => 'btn btn-sm btn-outline-primary', 'escape' => false, 'target' => '_blank']
+                                ) ?>
+                            </div>
+                        </div>
+                    </div>
+                    <?php endforeach; ?>
+                <?php endforeach; ?>
             </div>
         </div>
-        <?php endforeach; ?>
     <?php endif; ?>
 </div>
 
@@ -382,7 +405,7 @@ $totalDocs = array_sum(array_map('count', $documentsByStatus));
                 <tr>
                     <td><?= $history->created ? $history->created->format('d/m/Y H:i') : '' ?></td>
                     <td><?= $history->hasValue('user') ? h($history->user->full_name) : '' ?></td>
-                    <td><code><?= h($history->field_changed) ?></code></td>
+                    <td><?= h($fieldLabels[$history->field_changed] ?? $history->field_changed) ?></td>
                     <td class="text-muted"><?= h($history->old_value) ?: '—' ?></td>
                     <td class="fw-semibold"><?= h($history->new_value) ?: '—' ?></td>
                 </tr>

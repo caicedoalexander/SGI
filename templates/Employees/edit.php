@@ -36,7 +36,7 @@ $this->assign('title', 'Editar Empleado: ' . $employee->full_name);
         </div>
         <div class="row">
             <div class="col-md-3 mb-3">
-                <?= $this->Form->control('birth_date', ['class' => 'form-control flatpickr-date', 'label' => ['text' => 'Fecha Nacimiento', 'class' => 'form-label'], 'type' => 'text']) ?>
+                <?= $this->Form->control('birth_date', ['class' => 'form-control flatpickr-date', 'label' => ['text' => 'Fecha Nacimiento', 'class' => 'form-label'], 'type' => 'text', 'value' => $employee->birth_date?->format('Y-m-d') ?? '']) ?>
             </div>
             <div class="col-md-3 mb-3">
                 <?= $this->Form->control('gender', [
@@ -101,10 +101,10 @@ $this->assign('title', 'Editar Empleado: ' . $employee->full_name);
                 <?= $this->Form->control('cost_center_id', ['class' => 'form-select', 'label' => ['text' => 'Centro de Costos', 'class' => 'form-label'], 'empty' => '-- Seleccione --']) ?>
             </div>
             <div class="col-md-3 mb-3">
-                <?= $this->Form->control('hire_date', ['class' => 'form-control flatpickr-date', 'label' => ['text' => 'Fecha Ingreso', 'class' => 'form-label'], 'type' => 'text']) ?>
+                <?= $this->Form->control('hire_date', ['class' => 'form-control flatpickr-date', 'label' => ['text' => 'Fecha Ingreso', 'class' => 'form-label'], 'type' => 'text', 'value' => $employee->hire_date?->format('Y-m-d') ?? '']) ?>
             </div>
             <div class="col-md-3 mb-3">
-                <?= $this->Form->control('termination_date', ['class' => 'form-control flatpickr-date', 'label' => ['text' => 'Fecha Retiro', 'class' => 'form-label'], 'type' => 'text']) ?>
+                <?= $this->Form->control('termination_date', ['class' => 'form-control flatpickr-date', 'label' => ['text' => 'Fecha Retiro', 'class' => 'form-label'], 'type' => 'text', 'value' => $employee->termination_date?->format('Y-m-d') ?? '']) ?>
             </div>
             <div class="col-md-3 mb-3">
                 <?= $this->Form->control('salary', ['class' => 'form-control currency-input', 'label' => ['text' => 'Salario', 'class' => 'form-label'], 'type' => 'text']) ?>
