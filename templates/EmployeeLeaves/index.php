@@ -16,11 +16,13 @@ $statusBadges = [
 <div class="sgi-page-header d-flex justify-content-between align-items-center">
     <span class="sgi-page-title">Permisos y Licencias</span>
     <div class="d-flex gap-2">
+        <?php if (!empty($userPermissions['employee_leaves']['can_create'])): ?>
         <?= $this->Html->link(
             '<i class="bi bi-plus-lg me-1"></i>Nueva Solicitud',
             ['action' => 'add'],
             ['class' => 'btn btn-primary', 'escape' => false]
         ) ?>
+        <?php endif; ?>
     </div>
 </div>
 

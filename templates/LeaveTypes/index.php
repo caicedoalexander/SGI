@@ -10,11 +10,13 @@ $this->assign('title', 'Tipos de Permiso');
     <span class="sgi-page-title">Tipos de Permiso</span>
     <div class="d-flex gap-2">
         <?= $this->element('catalog_excel_buttons') ?>
+        <?php if (!empty($userPermissions['leave_types']['can_create'])): ?>
         <?= $this->Html->link(
             '<i class="bi bi-plus-lg me-1"></i>Nuevo Tipo',
             ['action' => 'add'],
             ['class' => 'btn btn-primary', 'escape' => false]
         ) ?>
+        <?php endif; ?>
     </div>
 </div>
 
@@ -35,17 +37,21 @@ $this->assign('title', 'Tipos de Permiso');
                     <td><?= h($leaveType->name) ?></td>
                     <td>
                         <div class="d-flex gap-1">
+                            <?php if (!empty($userPermissions['leave_types']['can_edit'])): ?>
                             <?= $this->Html->link(
                                 '<i class="bi bi-pencil"></i>',
                                 ['action' => 'edit', $leaveType->id],
                                 ['class' => 'btn btn-sm btn-outline-dark', 'escape' => false]
                             ) ?>
+                            <?php endif; ?>
+                            <?php if (!empty($userPermissions['leave_types']['can_delete'])): ?>
                             <?= $this->Form->postLink(
                                 '<i class="bi bi-trash"></i>',
                                 ['action' => 'delete', $leaveType->id],
                                 ['class' => 'btn btn-sm btn-outline-danger', 'escape' => false,
                                  'confirm' => '¿Eliminar este tipo de permiso?']
                             ) ?>
+                            <?php endif; ?>
                         </div>
                     </td>
                 </tr>

@@ -32,7 +32,11 @@ $this->assign('title', 'Usuario: ' . $user->full_name);
         </dl>
     </div>
     <div class="card-footer">
+        <?php if (!empty($userPermissions['users']['can_edit'])): ?>
         <?= $this->Html->link('<i class="bi bi-pencil me-1"></i>Editar', ['action' => 'edit', $user->id], ['class' => 'btn btn-warning btn-sm', 'escape' => false]) ?>
+        <?php endif; ?>
+        <?php if (!empty($userPermissions['users']['can_delete'])): ?>
         <?= $this->Form->postLink('<i class="bi bi-trash me-1"></i>Eliminar', ['action' => 'delete', $user->id], ['confirm' => '¿Está seguro?', 'class' => 'btn btn-danger btn-sm', 'escape' => false]) ?>
+        <?php endif; ?>
     </div>
 </div>

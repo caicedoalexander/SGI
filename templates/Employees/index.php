@@ -19,6 +19,7 @@ $hasFilters = !empty(array_filter($query, fn($v) => $v !== '' && $v !== null));
             ['action' => 'export'],
             ['class' => 'btn btn-outline-success btn-sm', 'escape' => false]
         ) ?>
+        <?php if (!empty($userPermissions['employees']['can_create'])): ?>
         <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#importExcelModal">
             <i class="bi bi-download me-1"></i>Importar
         </button>
@@ -27,6 +28,7 @@ $hasFilters = !empty(array_filter($query, fn($v) => $v !== '' && $v !== null));
             ['action' => 'add'],
             ['class' => 'btn btn-primary', 'escape' => false]
         ) ?>
+        <?php endif; ?>
     </div>
 </div>
 
@@ -194,16 +196,20 @@ $hasFilters = !empty(array_filter($query, fn($v) => $v !== '' && $v !== null));
                     <?php endif; ?>
                 </div>
                 <div class="d-flex gap-1">
+                    <?php if (!empty($userPermissions['employees']['can_edit'])): ?>
                     <?= $this->Html->link(
                         '<i class="bi bi-pencil"></i>',
                         ['action' => 'edit', $employee->id],
                         ['class' => 'btn btn-sm btn-outline-dark', 'escape' => false, 'title' => 'Editar']
                     ) ?>
+                    <?php endif; ?>
+                    <?php if (!empty($userPermissions['employees']['can_delete'])): ?>
                     <?= $this->Form->postLink(
                         '<i class="bi bi-trash"></i>',
                         ['action' => 'delete', $employee->id],
                         ['confirm' => '¿Está seguro de eliminar este empleado?', 'class' => 'btn btn-sm btn-outline-danger', 'escape' => false, 'title' => 'Eliminar']
                     ) ?>
+                    <?php endif; ?>
                 </div>
             </div>
 

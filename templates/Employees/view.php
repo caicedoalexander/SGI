@@ -60,8 +60,12 @@ foreach ($folders as $folder) {
 <div class="d-flex justify-content-between align-items-center mb-4">
     <?= $this->Html->link('<i class="bi bi-arrow-left me-1"></i>Volver', ['action' => 'index'], ['class' => 'btn btn-outline-dark btn-sm', 'escape' => false]) ?>
     <div class="d-flex gap-2">
+        <?php if (!empty($userPermissions['employees']['can_edit'])): ?>
         <?= $this->Html->link('<i class="bi bi-pencil me-1"></i>Editar', ['action' => 'edit', $employee->id], ['class' => 'btn btn-warning btn-sm', 'escape' => false]) ?>
+        <?php endif; ?>
+        <?php if (!empty($userPermissions['employees']['can_delete'])): ?>
         <?= $this->Form->postLink('<i class="bi bi-trash me-1"></i>Eliminar', ['action' => 'delete', $employee->id], ['confirm' => '¿Está seguro de eliminar este empleado y todos sus documentos?', 'class' => 'btn btn-danger btn-sm', 'escape' => false]) ?>
+        <?php endif; ?>
     </div>
 </div>
 
@@ -381,6 +385,7 @@ foreach ($folders as $folder) {
             Gestión Documental
             <span class="sgi-folder-count"><?= $totalDocs ?> doc<?= $totalDocs !== 1 ? 's' : '' ?></span>
         </span>
+        <?php if (!empty($userPermissions['employees']['can_create'])): ?>
         <div class="d-flex gap-2">
             <button type="button" class="btn btn-sm btn-outline-dark" data-bs-toggle="modal" data-bs-target="#newFolderModal">
                 <i class="bi bi-folder-plus me-1"></i>Nueva Carpeta
@@ -389,6 +394,7 @@ foreach ($folders as $folder) {
                 <i class="bi bi-upload me-1"></i>Subir Documento
             </button>
         </div>
+        <?php endif; ?>
     </div>
 
     <?php if ($folders->isEmpty()): ?>
@@ -447,7 +453,9 @@ foreach ($folders as $folder) {
                                         <td class="text-end">
                                             <div class="d-flex gap-1 justify-content-end">
                                                 <?= $this->Html->link('<i class="bi bi-box-arrow-up-right"></i>', '/' . $doc->file_path, ['class' => 'btn btn-sm btn-outline-primary', 'escape' => false, 'target' => '_blank', 'title' => 'Abrir']) ?>
+                                                <?php if (!empty($userPermissions['employees']['can_delete'])): ?>
                                                 <?= $this->Form->postLink('<i class="bi bi-trash"></i>', ['action' => 'deleteDocument', $employee->id, $doc->id], ['confirm' => '¿Eliminar este documento?', 'class' => 'btn btn-sm btn-outline-danger', 'escape' => false, 'title' => 'Eliminar']) ?>
+                                                <?php endif; ?>
                                             </div>
                                         </td>
                                     </tr>
@@ -488,7 +496,9 @@ foreach ($folders as $folder) {
                                                 <td class="text-end">
                                                     <div class="d-flex gap-1 justify-content-end">
                                                         <?= $this->Html->link('<i class="bi bi-box-arrow-up-right"></i>', '/' . $doc->file_path, ['class' => 'btn btn-sm btn-outline-primary', 'escape' => false, 'target' => '_blank', 'title' => 'Abrir']) ?>
+                                                        <?php if (!empty($userPermissions['employees']['can_delete'])): ?>
                                                         <?= $this->Form->postLink('<i class="bi bi-trash"></i>', ['action' => 'deleteDocument', $employee->id, $doc->id], ['confirm' => '¿Eliminar este documento?', 'class' => 'btn btn-sm btn-outline-danger', 'escape' => false, 'title' => 'Eliminar']) ?>
+                                                        <?php endif; ?>
                                                     </div>
                                                 </td>
                                             </tr>

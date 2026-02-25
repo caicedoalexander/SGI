@@ -5,7 +5,9 @@ $this->assign('title', 'Cargos');
     <span class="sgi-page-title">Cargos</span>
     <div class="d-flex gap-2">
         <?= $this->element('catalog_excel_buttons') ?>
+        <?php if (!empty($userPermissions['positions']['can_create'])): ?>
         <?= $this->Html->link('<i class="bi bi-plus-lg me-1"></i>Nuevo Cargo', ['action' => 'add'], ['class' => 'btn btn-primary', 'escape' => false]) ?>
+        <?php endif; ?>
     </div>
 </div>
 
@@ -28,8 +30,12 @@ $this->assign('title', 'Cargos');
                     <td><?= h($position->name) ?></td>
                     <td class="text-end">
                         <?= $this->Html->link('<i class="bi bi-eye"></i>', ['action' => 'view', $position->id], ['class' => 'btn btn-sm btn-outline-info', 'escape' => false, 'title' => 'Ver']) ?>
+                        <?php if (!empty($userPermissions['positions']['can_edit'])): ?>
                         <?= $this->Html->link('<i class="bi bi-pencil"></i>', ['action' => 'edit', $position->id], ['class' => 'btn btn-sm btn-outline-warning', 'escape' => false, 'title' => 'Editar']) ?>
+                        <?php endif; ?>
+                        <?php if (!empty($userPermissions['positions']['can_delete'])): ?>
                         <?= $this->Form->postLink('<i class="bi bi-trash"></i>', ['action' => 'delete', $position->id], ['confirm' => '¿Está seguro de eliminar?', 'class' => 'btn btn-sm btn-outline-danger', 'escape' => false, 'title' => 'Eliminar']) ?>
+                        <?php endif; ?>
                     </td>
                 </tr>
                 <?php endforeach; ?>

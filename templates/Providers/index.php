@@ -13,10 +13,12 @@ $this->assign('title', 'Proveedores');
             ['action' => 'export'],
             ['class' => 'btn btn-outline-success btn-sm', 'escape' => false]
         ) ?>
+        <?php if (!empty($userPermissions['providers']['can_create'])): ?>
         <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#importExcelModal">
             <i class="bi bi-download me-1"></i>Importar
         </button>
         <?= $this->Html->link('<i class="bi bi-plus-lg me-1"></i>Nuevo Proveedor', ['action' => 'add'], ['class' => 'btn btn-primary', 'escape' => false]) ?>
+        <?php endif; ?>
     </div>
 </div>
 
@@ -74,8 +76,12 @@ $this->assign('title', 'Proveedores');
                     <td><?= $provider->created?->format('d/m/Y H:i') ?></td>
                     <td class="text-end">
                         <?= $this->Html->link('<i class="bi bi-eye"></i>', ['action' => 'view', $provider->id], ['class' => 'btn btn-sm btn-outline-info', 'escape' => false, 'title' => 'Ver']) ?>
+                        <?php if (!empty($userPermissions['providers']['can_edit'])): ?>
                         <?= $this->Html->link('<i class="bi bi-pencil"></i>', ['action' => 'edit', $provider->id], ['class' => 'btn btn-sm btn-outline-warning', 'escape' => false, 'title' => 'Editar']) ?>
+                        <?php endif; ?>
+                        <?php if (!empty($userPermissions['providers']['can_delete'])): ?>
                         <?= $this->Form->postLink('<i class="bi bi-trash"></i>', ['action' => 'delete', $provider->id], ['confirm' => '¿Está seguro de eliminar este proveedor?', 'class' => 'btn btn-sm btn-outline-danger', 'escape' => false, 'title' => 'Eliminar']) ?>
+                        <?php endif; ?>
                     </td>
                 </tr>
                 <?php endforeach; ?>

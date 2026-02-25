@@ -37,11 +37,13 @@ $pipelineOptions = [
             ['action' => 'export'],
             ['class' => 'btn btn-outline-success', 'escape' => false]
         ) ?>
+        <?php if (!empty($userPermissions['invoices']['can_create'])): ?>
         <?= $this->Html->link(
             '<i class="bi bi-plus-lg me-1"></i>Nueva Factura',
             ['action' => 'add'],
             ['class' => 'btn btn-primary', 'escape' => false]
         ) ?>
+        <?php endif; ?>
     </div>
 </div>
 

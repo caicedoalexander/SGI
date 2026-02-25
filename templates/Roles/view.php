@@ -26,8 +26,12 @@ $this->assign('title', 'Rol: ' . $role->name);
         </dl>
     </div>
     <div class="card-footer">
+        <?php if (!empty($userPermissions['roles']['can_edit'])): ?>
         <?= $this->Html->link('<i class="bi bi-pencil me-1"></i>Editar', ['action' => 'edit', $role->id], ['class' => 'btn btn-warning btn-sm', 'escape' => false]) ?>
+        <?php endif; ?>
+        <?php if (!empty($userPermissions['roles']['can_delete'])): ?>
         <?= $this->Form->postLink('<i class="bi bi-trash me-1"></i>Eliminar', ['action' => 'delete', $role->id], ['confirm' => '¿Está seguro?', 'class' => 'btn btn-danger btn-sm', 'escape' => false]) ?>
+        <?php endif; ?>
     </div>
 </div>
 

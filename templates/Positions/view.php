@@ -21,7 +21,11 @@ $this->assign('title', 'Cargo: ' . $position->name);
         </dl>
     </div>
     <div class="card-footer">
+        <?php if (!empty($userPermissions['positions']['can_edit'])): ?>
         <?= $this->Html->link('<i class="bi bi-pencil me-1"></i>Editar', ['action' => 'edit', $position->id], ['class' => 'btn btn-warning btn-sm', 'escape' => false]) ?>
+        <?php endif; ?>
+        <?php if (!empty($userPermissions['positions']['can_delete'])): ?>
         <?= $this->Form->postLink('<i class="bi bi-trash me-1"></i>Eliminar', ['action' => 'delete', $position->id], ['confirm' => '¿Está seguro?', 'class' => 'btn btn-danger btn-sm', 'escape' => false]) ?>
+        <?php endif; ?>
     </div>
 </div>

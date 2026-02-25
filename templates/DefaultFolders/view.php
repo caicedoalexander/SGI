@@ -23,7 +23,11 @@ $this->assign('title', 'Carpeta por Defecto: ' . $defaultFolder->name);
         </dl>
     </div>
     <div class="card-footer">
+        <?php if (!empty($userPermissions['default_folders']['can_edit'])): ?>
         <?= $this->Html->link('<i class="bi bi-pencil me-1"></i>Editar', ['action' => 'edit', $defaultFolder->id], ['class' => 'btn btn-warning btn-sm', 'escape' => false]) ?>
+        <?php endif; ?>
+        <?php if (!empty($userPermissions['default_folders']['can_delete'])): ?>
         <?= $this->Form->postLink('<i class="bi bi-trash me-1"></i>Eliminar', ['action' => 'delete', $defaultFolder->id], ['confirm' => '¿Está seguro?', 'class' => 'btn btn-danger btn-sm', 'escape' => false]) ?>
+        <?php endif; ?>
     </div>
 </div>
