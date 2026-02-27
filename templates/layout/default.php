@@ -110,6 +110,13 @@ $currentController = $this->request->getParam('controller');
                         ['class' => $navLink('Invoices', 'all') . ' d-flex align-items-center', 'escape' => false]
                     ) ?>
                 </li>
+                <li class="nav-item">
+                    <?= $this->Html->link(
+                        '<i class="bi bi-x-circle me-2"></i>Facturas Rechazadas',
+                        ['controller' => 'Invoices', 'action' => 'rejected'],
+                        ['class' => $navLink('Invoices', 'rejected') . ' d-flex align-items-center', 'escape' => false]
+                    ) ?>
+                </li>
                 <?php endif; ?>
                 <?php if ($canView('approvers')): ?>
                 <li class="nav-item">

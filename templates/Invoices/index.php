@@ -8,8 +8,11 @@
  * @var \Cake\ORM\ResultSet $operationCenters
  * @var \Cake\ORM\ResultSet $expenseTypes
  */
-$isAllView = $this->request->getParam('action') === 'all';
-$pageTitle = $isAllView ? 'Todas las Facturas' : 'Mis Facturas';
+$isAllView      = $this->request->getParam('action') === 'all';
+$isRejectedView = $this->request->getParam('action') === 'rejected';
+$pageTitle = $isRejectedView ? 'Facturas Rechazadas'
+           : ($isAllView     ? 'Todas las Facturas'
+           :                   'Mis Facturas');
 $this->assign('title', $pageTitle);
 
 $pipelineBadges = [
@@ -34,7 +37,7 @@ $pipelineOptions = [
     <div class="d-flex gap-2">
         <?php if (!empty($userPermissions['dian_crosschecks']['can_create'])): ?>
         <?= $this->Html->link(
-            '<i class="bi bi-arrow-left-right me-1"></i>Cruce DIAN',
+            '<i class="bi bi-arrow-left-right me-1"></i>Cruce',
             ['controller' => 'DianCrosschecks', 'action' => 'add'],
             ['class' => 'btn btn-outline-warning', 'escape' => false]
         ) ?>
@@ -63,7 +66,7 @@ $pipelineOptions = [
 
 <!-- Search & Filters -->
 <div class="sgi-search-bar mb-3">
-    <?= $this->Form->create(null, ['type' => 'get', 'url' => ['action' => $isAllView ? 'all' : 'index'], 'valueSources' => ['query']]) ?>
+    <?= $this->Form->create(null, ['type' => 'get', 'url' => ['action' => $isRejectedView ? 'rejected' : ($isAllView ? 'all' : 'index')], 'valueSources' => ['query']]) ?>
     <div class="d-flex gap-2">
         <div class="flex-grow-1">
             <?= $this->Form->control('search', [
@@ -81,7 +84,7 @@ $pipelineOptions = [
         <?php if ($hasFilters): ?>
             <?= $this->Html->link(
                 '<i class="bi bi-x-lg"></i> Limpiar',
-                ['action' => $isAllView ? 'all' : 'index'],
+                ['action' => $isRejectedView ? 'rejected' : ($isAllView ? 'all' : 'index')],
                 ['class' => 'btn btn-outline-danger', 'escape' => false]
             ) ?>
         <?php endif; ?>

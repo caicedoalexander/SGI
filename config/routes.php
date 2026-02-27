@@ -56,6 +56,12 @@ return function (RouteBuilder $routes): void {
 
         $builder->connect('/pages/*', 'Pages::display');
 
+        // Invoice rejected view
+        $builder->connect(
+            '/invoices/rejected',
+            ['controller' => 'Invoices', 'action' => 'rejected']
+        );
+
         // Invoice pipeline advance action
         $builder->connect(
             '/invoices/advance-status/{id}',

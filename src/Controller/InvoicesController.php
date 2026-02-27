@@ -72,6 +72,23 @@ class InvoicesController extends AppController
         $this->render('index');
     }
 
+    public function rejected(): void
+    {
+        $roleName = $this->_getRoleName();
+        $query = $this->Invoices->find()
+            ->contain(['Providers', 'OperationCenters', 'ExpenseTypes', 'CostCenters', 'RegisteredByUsers'])
+            ->where(['Invoices.area_approval' => 'Rechazada']);
+
+        $this->filterService->apply($query, $this->request->getQueryParams());
+        $this->paginate = ['limit' => 15, 'maxLimit' => 15];
+        $invoices = $this->paginate($query);
+        $visibleStatuses = [];
+
+        $this->set(compact('invoices', 'visibleStatuses', 'roleName'));
+        $this->set($this->_getFilterDropdowns());
+        $this->render('index');
+    }
+
     public function view($id = null)
     {
         $invoice = $this->Invoices->get($id, contain: [
@@ -189,7 +206,7 @@ class InvoicesController extends AppController
                     $this->Flash->warning($notifErr);
                 }
 
-                return $this->redirect(['action' => 'index']);
+                return $this->redirect(['action' => 'edit', $id]);
             }
 
             $this->Flash->error('No se pudo guardar la factura. Verifique los datos e intente de nuevo.');
@@ -198,10 +215,13 @@ class InvoicesController extends AppController
         $pipelineStatuses = InvoicePipelineService::STATUSES;
         $pipelineLabels = InvoicePipelineService::STATUS_LABELS;
 
+        $canDeleteDocuments = $this->_checkPermission('invoices', 'delete');
+
         $this->set(compact(
             'invoice',
             'editableFields',
             'canAdvance',
+            'canDeleteDocuments',
             'roleName',
             'pipelineStatuses',
             'pipelineLabels',
@@ -229,7 +249,7 @@ class InvoicesController extends AppController
                 $this->Flash->warning($result['notificationError']);
             }
 
-            return $this->redirect(['action' => 'index']);
+            return $this->redirect(['action' => 'edit', $id]);
         }
 
         $this->Flash->error($result['error']);
@@ -395,7 +415,7 @@ class InvoicesController extends AppController
         if (!$file) {
             $this->Flash->error(__('No se recibió ningún archivo válido.'));
 
-            return $this->redirect(['action' => 'view', $invoiceId]);
+            return $this->redirect(['action' => 'edit', $invoiceId]);
         }
 
         $identity = $this->Authentication->getIdentity();
@@ -414,7 +434,7 @@ class InvoicesController extends AppController
             $this->Flash->success(__('El soporte ha sido subido.'));
         }
 
-        return $this->redirect(['action' => 'view', $invoiceId]);
+        return $this->redirect(['action' => 'edit', $invoiceId]);
     }
 
     public function deleteDocument($invoiceId = null, $documentId = null)

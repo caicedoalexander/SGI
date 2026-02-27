@@ -53,7 +53,7 @@ class AppController extends Controller
     protected function _actionToPermission(string $action): string
     {
         return match ($action) {
-            'index', 'view', 'export', 'all' => 'view',
+            'index', 'view', 'export', 'all', 'rejected' => 'view',
             'add', 'addFolder', 'uploadDocument', 'import' => 'add',
             'edit', 'advanceStatus', 'addObservation', 'testSmtp', 'approve', 'reject', 'generateApprovalLink', 'deactivate' => 'edit',
             'delete', 'deleteDocument' => 'delete',

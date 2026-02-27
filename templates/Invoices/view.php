@@ -346,9 +346,16 @@ $totalDocs = array_sum(array_map('count', $documentsByStatus));
                             <div style="padding:.6rem .875rem;border-bottom:1px solid var(--border-color);background:#fafafa;display:flex;align-items:center;gap:.5rem;min-width:0;">
                                 <i class="bi <?= $docIcon($doc->mime_type) ?> flex-shrink-0"
                                    style="color:<?= $docIconColor($doc->mime_type) ?>;font-size:1.1rem;"></i>
-                                <span style="font-size:.78rem;font-weight:600;color:#222;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;" title="<?= h($doc->file_name) ?>">
-                                    <?= h($doc->file_name) ?>
-                                </span>
+                                <div style="min-width:0;flex:1;overflow:hidden;">
+                                    <span style="font-size:.78rem;font-weight:600;color:#222;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block;" title="<?= h($doc->document_type ?: $doc->file_name) ?>">
+                                        <?= h($doc->document_type ?: $doc->file_name) ?>
+                                    </span>
+                                    <?php if ($doc->document_type): ?>
+                                    <span style="font-size:.7rem;color:#888;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="<?= h($doc->file_name) ?>">
+                                        <?= h($doc->file_name) ?>
+                                    </span>
+                                    <?php endif; ?>
+                                </div>
                             </div>
                             <!-- Card body: badge estado + usuario + fecha + tamaño -->
                             <div style="padding:.6rem .875rem;flex:1;font-size:.78rem;color:#555;display:flex;flex-direction:column;gap:.3rem;">

@@ -132,9 +132,15 @@ $fecha  = $dias[$hoy->format('w')] . ', ' . $hoy->format('j') . ' de ' . $meses[
             ['module' => 'employee_statuses',  'label' => 'Estados Empleado',       'icon' => 'bi-card-checklist', 'controller' => 'EmployeeStatuses',  'group' => 'dark'],
             ['module' => 'marital_statuses',   'label' => 'Estados Civiles',        'icon' => 'bi-heart',          'controller' => 'MaritalStatuses',   'group' => 'dark'],
             ['module' => 'education_levels',   'label' => 'Niveles Educativos',     'icon' => 'bi-mortarboard',    'controller' => 'EducationLevels',   'group' => 'dark'],
-            ['module' => 'default_folders',    'label' => 'Carpetas por Defecto',   'icon' => 'bi-folder',         'controller' => 'DefaultFolders',    'group' => 'dark'],
-            ['module' => 'users',              'label' => 'Usuarios',               'icon' => 'bi-people',         'controller' => 'Users',             'group' => 'dark'],
-            ['module' => 'roles',              'label' => 'Roles',                  'icon' => 'bi-shield-lock',    'controller' => 'Roles',             'group' => 'dark'],
+            ['module' => 'default_folders',         'label' => 'Carpetas por Defecto',    'icon' => 'bi-folder',              'controller' => 'DefaultFolders',         'group' => 'dark'],
+            ['module' => 'employee_leaves',         'label' => 'Permisos y Licencias',    'icon' => 'bi-calendar2-check',     'controller' => 'EmployeeLeaves',         'group' => 'primary'],
+            ['module' => 'employee_novedades',      'label' => 'Novedades',               'icon' => 'bi-clipboard-pulse',     'controller' => 'EmployeeNovedades',      'group' => 'primary'],
+            ['module' => 'dian_crosschecks',        'label' => 'Cruces DIAN',             'icon' => 'bi-file-earmark-check',  'controller' => 'DianCrosschecks',        'group' => 'secondary'],
+            ['module' => 'organizaciones_temporales','label' => 'Org. Temporales',         'icon' => 'bi-building',            'controller' => 'OrganizacionesTemporales','group' => 'dark'],
+            ['module' => 'leave_types',             'label' => 'Tipos de Licencia',       'icon' => 'bi-list-check',          'controller' => 'LeaveTypes',             'group' => 'dark'],
+            ['module' => 'users',                   'label' => 'Usuarios',                'icon' => 'bi-people',              'controller' => 'Users',                  'group' => 'dark'],
+            ['module' => 'roles',                   'label' => 'Roles',                   'icon' => 'bi-shield-lock',         'controller' => 'Roles',                  'group' => 'dark'],
+            ['module' => 'system_settings',         'label' => 'Configuración',           'icon' => 'bi-gear',                'controller' => 'SystemSettings',         'group' => 'dark'],
         ];
 
         $groupColors = [

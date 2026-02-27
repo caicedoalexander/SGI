@@ -98,6 +98,41 @@ $ps = $pipelineBadgeMap[$currentStatus] ?? ['Desconocido', 'bg-dark'];
 </div>
 <?php endif; ?>
 
+<?php
+// Soportes — calcular antes del layout de dos columnas
+$uploadableStatuses = ['aprobacion', 'contabilidad', 'tesoreria'];
+$showUploadSection  = in_array($currentStatus, $uploadableStatuses, true);
+$documentsByStatus  = [];
+if (!empty($invoice->invoice_documents)) {
+    foreach ($invoice->invoice_documents as $doc) {
+        $documentsByStatus[$doc->pipeline_status][] = $doc;
+    }
+}
+$statusLabels = ['aprobacion' => 'Aprobación', 'contabilidad' => 'Contabilidad', 'tesoreria' => 'Tesorería', 'pagada' => 'Pagada'];
+$badgeColors  = ['aprobacion' => 'bg-info text-dark', 'contabilidad' => 'bg-primary', 'tesoreria' => 'bg-warning text-dark', 'pagada' => 'bg-success'];
+$docIcon = fn(?string $mime): string => match(true) {
+    str_contains($mime ?? '', 'pdf')                                                                  => 'bi-file-earmark-pdf',
+    str_contains($mime ?? '', 'image')                                                                => 'bi-file-earmark-image',
+    str_contains($mime ?? '', 'wordprocessingml') || str_contains($mime ?? '', 'msword')              => 'bi-file-earmark-word',
+    str_contains($mime ?? '', 'spreadsheet') || str_contains($mime ?? '', 'excel')                   => 'bi-file-earmark-excel',
+    default                                                                                           => 'bi-file-earmark',
+};
+$docIconColor = fn(?string $mime): string => match(true) {
+    str_contains($mime ?? '', 'pdf')                                                                  => '#dc3545',
+    str_contains($mime ?? '', 'image')                                                                => '#0dcaf0',
+    str_contains($mime ?? '', 'wordprocessingml') || str_contains($mime ?? '', 'msword')              => '#0d6efd',
+    str_contains($mime ?? '', 'spreadsheet') || str_contains($mime ?? '', 'excel')                   => 'var(--primary-color)',
+    default                                                                                           => '#aaa',
+};
+$totalDocs = array_sum(array_map('count', $documentsByStatus));
+$hasSoportes = $showUploadSection || !empty($documentsByStatus);
+?>
+
+<!-- Layout: formulario izquierda + soportes derecha -->
+<div style="display:flex;gap:1.5rem;align-items:flex-start;">
+
+<!-- ── Columna izquierda: formulario ── -->
+<div style="flex:1;min-width:0;">
 <div class="card card-primary mb-4">
 
     <!-- Cabecera: identificador + rol + estado -->
@@ -269,10 +304,10 @@ $ps = $pipelineBadgeMap[$currentStatus] ?? ['Desconocido', 'bg-dark'];
             <div class="mt-3">
                 <label class="form-label">Detalle</label>
                 <?= $this->Form->control('detail', array_merge(
-                    ['label' => false, 'type' => 'textarea', 'rows' => 3],
+                    ['label' => false, 'type' => 'textarea', 'rows' => 1],
                     $canEdit('detail')
-                        ? ['class' => 'form-control']
-                        : ['class' => 'form-control', 'disabled' => true]
+                        ? ['class' => 'form-control auto-resize']
+                        : ['class' => 'form-control auto-resize', 'disabled' => true]
                 )) ?>
             </div>
         </div>
@@ -407,43 +442,6 @@ $ps = $pipelineBadgeMap[$currentStatus] ?? ['Desconocido', 'bg-dark'];
         </div>
         <?php endif; ?>
 
-        <!-- ── Observaciones (chat) ── -->
-        <div class="mb-4">
-            <div class="d-flex align-items-center gap-3 mb-3">
-                <span class="text-uppercase fw-semibold flex-shrink-0"
-                      style="font-size:.58rem;letter-spacing:.14em;color:#bbb;">Observaciones</span>
-                <div style="flex:1;height:1px;background:var(--border-color);"></div>
-            </div>
-            <?php if (!empty($invoice->invoice_observations)): ?>
-            <div style="max-height:300px;overflow-y:auto;margin-bottom:1rem;padding:.5rem;border:1px solid var(--border-color);">
-                <?php foreach ($invoice->invoice_observations as $obs): ?>
-                <div class="d-flex align-items-start gap-2 mb-3">
-                    <div class="d-flex align-items-center justify-content-center flex-shrink-0"
-                         style="width:28px;height:28px;background:var(--primary-color);color:#fff;font-size:.6rem;font-weight:700;">
-                        <?php
-                        $names = explode(' ', $obs->user->full_name ?? '');
-                        echo strtoupper(substr($names[0] ?? '', 0, 1) . substr($names[1] ?? '', 0, 1));
-                        ?>
-                    </div>
-                    <div style="flex:1;min-width:0;">
-                        <div class="d-flex align-items-center gap-2">
-                            <span style="font-size:.75rem;font-weight:600;color:#222;">
-                                <?= h($obs->user->full_name ?? '') ?>
-                            </span>
-                            <span style="font-size:.65rem;color:#aaa;">
-                                <?= $obs->created ? $obs->created->format('d/m/Y H:i') : '' ?>
-                            </span>
-                        </div>
-                        <div style="font-size:.8rem;color:#444;line-height:1.4;margin-top:.1rem;">
-                            <?= nl2br(h($obs->message)) ?>
-                        </div>
-                    </div>
-                </div>
-                <?php endforeach; ?>
-            </div>
-            <?php endif; ?>
-        </div>
-
         <!-- Botones de acción -->
         <?php if (!empty($editableFields)): ?>
         <div class="d-flex gap-2 pt-2" style="border-top:1px solid var(--border-color);">
@@ -466,119 +464,163 @@ $ps = $pipelineBadgeMap[$currentStatus] ?? ['Desconocido', 'bg-dark'];
         <?= $this->Form->end() ?>
     </div>
 </div>
+</div><!-- /columna izquierda -->
 
-<!-- Soportes Documentales -->
-<?php
-$uploadableStatuses = ['aprobacion', 'contabilidad', 'tesoreria'];
-$showUploadSection = in_array($currentStatus, $uploadableStatuses, true);
-$documentsByStatus = [];
-if (!empty($invoice->invoice_documents)) {
-    foreach ($invoice->invoice_documents as $doc) {
-        $documentsByStatus[$doc->pipeline_status][] = $doc;
-    }
-}
-$statusLabels = [
-    'aprobacion' => 'Aprobación',
-    'contabilidad' => 'Contabilidad',
-    'tesoreria' => 'Tesorería',
-    'pagada' => 'Pagada',
-];
-$docIcon = fn(?string $mime): string => match(true) {
-    str_contains($mime ?? '', 'pdf') => 'bi-file-earmark-pdf',
-    str_contains($mime ?? '', 'image') => 'bi-file-earmark-image',
-    str_contains($mime ?? '', 'wordprocessingml') || str_contains($mime ?? '', 'msword') => 'bi-file-earmark-word',
-    str_contains($mime ?? '', 'spreadsheet') || str_contains($mime ?? '', 'excel') => 'bi-file-earmark-excel',
-    default => 'bi-file-earmark',
-};
-$docIconColor = fn(?string $mime): string => match(true) {
-    str_contains($mime ?? '', 'pdf') => '#dc3545',
-    str_contains($mime ?? '', 'image') => '#0dcaf0',
-    str_contains($mime ?? '', 'wordprocessingml') || str_contains($mime ?? '', 'msword') => '#0d6efd',
-    str_contains($mime ?? '', 'spreadsheet') || str_contains($mime ?? '', 'excel') => 'var(--primary-color)',
-    default => '#aaa',
-};
-$totalDocs = array_sum(array_map('count', $documentsByStatus));
-?>
-<?php if ($showUploadSection || !empty($documentsByStatus)): ?>
-<div class="card card-primary mb-4">
+<!-- ── Columna derecha: soportes + observaciones ── -->
+<div style="width:380px;flex-shrink:0;display:flex;flex-direction:column;gap:1rem;">
+
+<?php if ($hasSoportes): ?>
+<div class="card card-primary">
     <div class="card-header d-flex justify-content-between align-items-center">
         <span class="d-flex align-items-center gap-2">
-            <i class="bi bi-paperclip"></i>
-            Soportes
+            <i class="bi bi-paperclip" style="font-size:.85rem;"></i>
+            <span style="font-size:.85rem;font-weight:600;">Soportes</span>
             <span class="sgi-folder-count"><?= $totalDocs ?> doc<?= $totalDocs !== 1 ? 's' : '' ?></span>
         </span>
         <?php if ($showUploadSection): ?>
         <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#uploadInvoiceDocModal">
-            <i class="bi bi-upload me-1"></i>Subir Soporte
+            <i class="bi bi-upload me-1"></i>Subir
         </button>
         <?php endif; ?>
     </div>
 
     <?php if (empty($documentsByStatus)): ?>
-        <div class="p-3 text-center text-muted" style="font-size:.875rem">
-            <i class="bi bi-file-earmark-x me-1"></i>Sin soportes adjuntos
+        <div style="padding:2rem 1rem;text-align:center;color:#c8c8c8;">
+            <i class="bi bi-file-earmark-x d-block mb-2" style="font-size:1.5rem;"></i>
+            <span style="font-size:.8rem;">Sin soportes adjuntos</span>
         </div>
     <?php else: ?>
-        <div class="p-3">
-            <div class="row row-cols-1 row-cols-md-3 g-3">
-                <?php foreach ($documentsByStatus as $status => $docs): ?>
-                    <?php foreach ($docs as $doc): ?>
-                    <div class="col">
-                        <div style="border:1px solid var(--border-color);height:100%;display:flex;flex-direction:column;">
-                            <!-- Card header: icono + nombre -->
-                            <div style="padding:.6rem .875rem;border-bottom:1px solid var(--border-color);background:#fafafa;display:flex;align-items:center;gap:.5rem;min-width:0;">
-                                <i class="bi <?= $docIcon($doc->mime_type) ?> flex-shrink-0"
-                                   style="color:<?= $docIconColor($doc->mime_type) ?>;font-size:1.1rem;"></i>
-                                <span style="font-size:.78rem;font-weight:600;color:#222;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;" title="<?= h($doc->file_name) ?>">
-                                    <?= h($doc->file_name) ?>
-                                </span>
-                            </div>
-                            <!-- Card body: badge estado + usuario + fecha + tamaño -->
-                            <div style="padding:.6rem .875rem;flex:1;font-size:.78rem;color:#555;display:flex;flex-direction:column;gap:.3rem;">
-                                <div>
-                                    <?php
-                                    $badgeColors = ['aprobacion' => 'bg-info text-dark', 'contabilidad' => 'bg-primary', 'tesoreria' => 'bg-warning text-dark', 'pagada' => 'bg-success'];
-                                    ?>
-                                    <span class="badge <?= $badgeColors[$status] ?? 'bg-secondary' ?>" style="font-size:.65rem;">
-                                        <?= $statusLabels[$status] ?? $status ?>
-                                    </span>
-                                </div>
-                                <div style="display:flex;align-items:center;gap:.35rem;color:#666;">
-                                    <i class="bi bi-person" style="font-size:.8rem;"></i>
-                                    <span><?= $doc->has('uploaded_by_user') ? h($doc->uploaded_by_user->full_name) : '—' ?></span>
-                                </div>
-                                <div style="display:flex;align-items:center;gap:.35rem;color:#888;">
-                                    <i class="bi bi-clock" style="font-size:.75rem;"></i>
-                                    <span><?= $doc->created?->format('d/m/Y H:i') ?></span>
-                                </div>
-                                <?php if ($doc->file_size): ?>
-                                <div style="color:#aaa;font-size:.72rem;"><?= $this->Number->toReadableSize($doc->file_size) ?></div>
-                                <?php endif; ?>
-                            </div>
-                            <!-- Card footer: botones abrir / eliminar -->
-                            <div style="padding:.5rem .875rem;border-top:1px solid var(--border-color);display:flex;gap:.4rem;justify-content:flex-end;">
-                                <?= $this->Html->link(
-                                    '<i class="bi bi-box-arrow-up-right me-1"></i>Abrir',
-                                    '/' . $doc->file_path,
-                                    ['class' => 'btn btn-sm btn-outline-primary', 'escape' => false, 'target' => '_blank']
-                                ) ?>
-                                <?php if ($doc->pipeline_status === $currentStatus): ?>
-                                <?= $this->Form->postLink(
-                                    '<i class="bi bi-trash"></i>',
-                                    ['action' => 'deleteDocument', $invoice->id, $doc->id],
-                                    ['confirm' => '¿Eliminar este soporte?', 'class' => 'btn btn-sm btn-outline-danger', 'escape' => false, 'title' => 'Eliminar']
-                                ) ?>
-                                <?php endif; ?>
-                            </div>
-                        </div>
-                    </div>
-                    <?php endforeach; ?>
-                <?php endforeach; ?>
+        <div style="max-height:420px;overflow-y:auto;">
+            <?php
+            $multipleStatuses = count($documentsByStatus) > 1;
+            foreach ($documentsByStatus as $status => $docs):
+            ?>
+            <?php if ($multipleStatuses): ?>
+            <div style="padding:.3rem .875rem;background:#f8f9fa;border-bottom:1px solid var(--border-color);display:flex;align-items:center;gap:.4rem;">
+                <span class="badge <?= $badgeColors[$status] ?? 'bg-secondary' ?>" style="font-size:.6rem;"><?= $statusLabels[$status] ?? $status ?></span>
+                <span style="font-size:.67rem;color:#aaa;"><?= count($docs) ?> archivo<?= count($docs) !== 1 ? 's' : '' ?></span>
             </div>
+            <?php endif; ?>
+            <?php foreach ($docs as $doc): ?>
+            <div style="display:flex;align-items:flex-start;gap:.75rem;padding:.8rem .875rem;border-bottom:1px solid var(--border-color);">
+                <!-- Icono tipo archivo -->
+                <div style="width:34px;height:34px;flex-shrink:0;background:#f5f5f5;border:1px solid var(--border-color);display:flex;align-items:center;justify-content:center;">
+                    <i class="bi <?= $docIcon($doc->mime_type) ?>"
+                       style="color:<?= $docIconColor($doc->mime_type) ?>;font-size:1rem;"></i>
+                </div>
+                <!-- Info -->
+                <div style="flex:1;min-width:0;">
+                    <div style="font-size:.79rem;font-weight:600;color:#1a1a1a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.35;"
+                         title="<?= h($doc->document_type ?: $doc->file_name) ?>">
+                        <?= h($doc->document_type ?: $doc->file_name) ?>
+                    </div>
+                    <?php if ($doc->document_type): ?>
+                    <div style="font-size:.7rem;color:#999;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:.1rem;"
+                         title="<?= h($doc->file_name) ?>"><?= h($doc->file_name) ?></div>
+                    <?php endif; ?>
+                    <div style="display:flex;align-items:center;gap:.5rem;margin-top:.35rem;flex-wrap:wrap;">
+                        <?php if (!$multipleStatuses): ?>
+                        <span class="badge <?= $badgeColors[$status] ?? 'bg-secondary' ?>" style="font-size:.58rem;"><?= $statusLabels[$status] ?? $status ?></span>
+                        <?php endif; ?>
+                        <span style="font-size:.65rem;color:#bbb;">
+                            <i class="bi bi-clock" style="font-size:.6rem;"></i>
+                            <?= $doc->created?->format('d/m/Y H:i') ?>
+                        </span>
+                        <?php if ($doc->file_size): ?>
+                        <span style="font-size:.63rem;color:#ccc;"><?= $this->Number->toReadableSize($doc->file_size) ?></span>
+                        <?php endif; ?>
+                    </div>
+                </div>
+                <!-- Acciones -->
+                <div style="display:flex;gap:.25rem;flex-shrink:0;align-self:center;">
+                    <?= $this->Html->link(
+                        '<i class="bi bi-box-arrow-up-right"></i>',
+                        '/' . $doc->file_path,
+                        ['class' => 'btn btn-sm btn-outline-secondary', 'style' => 'padding:.25rem .45rem;font-size:.72rem;line-height:1;', 'escape' => false, 'target' => '_blank', 'title' => 'Abrir']
+                    ) ?>
+                    <?php if ($canDeleteDocuments && $doc->pipeline_status === $currentStatus): ?>
+                    <?= $this->Form->postLink(
+                        '<i class="bi bi-trash"></i>',
+                        ['action' => 'deleteDocument', $invoice->id, $doc->id],
+                        ['confirm' => '¿Eliminar este soporte?', 'class' => 'btn btn-sm btn-outline-danger', 'style' => 'padding:.25rem .45rem;font-size:.72rem;line-height:1;', 'escape' => false, 'title' => 'Eliminar']
+                    ) ?>
+                    <?php endif; ?>
+                </div>
+            </div>
+            <?php endforeach; ?>
+            <?php endforeach; ?>
         </div>
     <?php endif; ?>
 </div>
 <?php endif; ?>
+
+<!-- Observaciones: chat -->
+<?php $obsCount = count($invoice->invoice_observations ?? []); ?>
+<div class="card card-primary" style="display:flex;flex-direction:column;">
+    <div class="card-header d-flex align-items-center gap-2">
+        <i class="bi bi-chat-left-text" style="font-size:.85rem;color:var(--primary-color);"></i>
+        <span style="font-size:.85rem;font-weight:600;">Observaciones</span>
+        <?php if ($obsCount > 0): ?>
+        <span class="sgi-folder-count ms-auto"><?= $obsCount ?></span>
+        <?php endif; ?>
+    </div>
+
+    <!-- Mensajes -->
+    <div id="obs-chat-scroll" style="min-height:100px;max-height:340px;overflow-y:auto;padding:1rem .875rem;background:#f9fafb;display:flex;flex-direction:column;gap:.875rem;">
+        <?php if (empty($invoice->invoice_observations)): ?>
+        <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:1.5rem 0;color:#c5c5c5;gap:.5rem;">
+            <i class="bi bi-chat-square-dots" style="font-size:1.75rem;"></i>
+            <span style="font-size:.78rem;">Sin observaciones aún</span>
+        </div>
+        <?php else: ?>
+        <?php foreach ($invoice->invoice_observations as $obs):
+            $isMine   = $currentUser && $obs->user_id === $currentUser->id;
+            $names    = explode(' ', trim($obs->user->full_name ?? ''));
+            $initials = strtoupper(substr($names[0] ?? '', 0, 1) . substr($names[array_key_last($names)] ?? '', 0, 1));
+        ?>
+        <div style="display:flex;flex-direction:column;align-items:<?= $isMine ? 'flex-end' : 'flex-start' ?>;gap:.2rem;">
+            <!-- Nombre -->
+            <div style="font-size:.63rem;color:#aaa;font-weight:500;letter-spacing:.01em;
+                        <?= $isMine ? 'padding-right:.3rem' : 'padding-left:.3rem' ?>">
+                <?= $isMine ? 'Tú' : h($obs->user->full_name ?? '') ?>
+            </div>
+            <!-- Burbuja -->
+            <div style="max-width:92%;padding:.55rem .8rem;font-size:.81rem;line-height:1.5;word-break:break-word;
+                        background:<?= $isMine ? 'var(--primary-color)' : '#fff' ?>;
+                        color:<?= $isMine ? '#fff' : '#2d2d2d' ?>;
+                        border:1px solid <?= $isMine ? 'var(--primary-color)' : 'var(--border-color)' ?>;
+                        border-radius:<?= $isMine ? '10px 10px 2px 10px' : '10px 10px 10px 2px' ?>;">
+                <?= nl2br(h($obs->message)) ?>
+            </div>
+            <!-- Hora -->
+            <div style="font-size:.61rem;color:#c0c0c0;
+                        <?= $isMine ? 'padding-right:.3rem' : 'padding-left:.3rem' ?>">
+                <?= $obs->created?->format('d/m/Y H:i') ?>
+            </div>
+        </div>
+        <?php endforeach; ?>
+        <?php endif; ?>
+    </div>
+
+    <!-- Input -->
+    <div style="border-top:1px solid var(--border-color);padding:.75rem .875rem;background:#fff;">
+        <?= $this->Form->create(null, ['url' => ['action' => 'addObservation', $invoice->id]]) ?>
+        <div class="d-flex gap-2 align-items-end">
+            <textarea name="message" class="form-control auto-resize" rows="1"
+                      style="font-size:.82rem;background:#f9fafb;border-color:var(--border-color);"
+                      placeholder="Escriba una observación..." required></textarea>
+            <button type="submit" class="btn btn-primary flex-shrink-0"
+                    style="padding:.5rem .75rem;align-self:flex-end;" title="Enviar">
+                <i class="bi bi-send" style="font-size:.85rem;"></i>
+            </button>
+        </div>
+        <?= $this->Form->end() ?>
+    </div>
+</div>
+
+</div><!-- /columna derecha -->
+
+</div><!-- /layout dos columnas -->
 
 <?php if ($showUploadSection): ?>
 <!-- Modal: Subir Soporte -->
@@ -609,21 +651,25 @@ $totalDocs = array_sum(array_map('count', $documentsByStatus));
 </div>
 <?php endif; ?>
 
-<!-- Agregar Observación -->
-<div class="card card-primary">
-    <div class="card-header d-flex align-items-center gap-3">
-        <i class="bi bi-chat-dots" style="font-size:.9rem;color:var(--primary-color);"></i>
-        <span style="font-size:.85rem;font-weight:600;">Agregar Observación</span>
-    </div>
-    <div class="card-body p-3">
-        <?= $this->Form->create(null, ['url' => ['action' => 'addObservation', $invoice->id]]) ?>
-        <div class="d-flex gap-2">
-            <textarea name="message" class="form-control" rows="2"
-                      placeholder="Escriba una observación..." required></textarea>
-            <button type="submit" class="btn btn-primary align-self-end flex-shrink-0">
-                <i class="bi bi-send me-1"></i>Enviar
-            </button>
-        </div>
-        <?= $this->Form->end() ?>
-    </div>
-</div>
+<?php $this->append('script') ?>
+<script>
+(function(){
+    // Auto-scroll chat al último mensaje
+    var chat = document.getElementById('obs-chat-scroll');
+    if (chat) chat.scrollTop = chat.scrollHeight;
+
+    // Auto-resize textareas
+    function syncHeight(el) {
+        el.style.height = 'auto';
+        el.style.height = el.scrollHeight + 'px';
+    }
+    document.querySelectorAll('.auto-resize').forEach(function(el) {
+        el.style.overflow = 'hidden';
+        el.style.resize   = 'none';
+        syncHeight(el);
+        el.addEventListener('input', function() { syncHeight(this); });
+    });
+})();
+</script>
+<?php $this->end() ?>
+
