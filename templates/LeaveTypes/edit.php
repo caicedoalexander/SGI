@@ -27,6 +27,17 @@ $this->assign('title', 'Editar Tipo de Permiso');
                 <label class="form-label">Nombre</label>
                 <?= $this->Form->control('name', ['label' => false, 'class' => 'form-control']) ?>
             </div>
+            <div class="col-md-12">
+                <div class="form-check">
+                    <?= $this->Form->checkbox('remunerado', [
+                        'class' => 'form-check-input',
+                        'id' => 'remunerado',
+                        'checked' => !empty($leaveType->remunerado),
+                    ]) ?>
+                    <label class="form-check-label" for="remunerado">Remunerado por defecto</label>
+                    <div class="form-text">Si se activa, las solicitudes de permiso de este tipo se marcarán como remuneradas automáticamente.</div>
+                </div>
+            </div>
         </div>
         <div class="d-flex gap-2 pt-3 mt-3" style="border-top:1px solid var(--border-color);">
             <button type="submit" class="btn btn-primary"><i class="bi bi-save me-1"></i>Guardar</button>

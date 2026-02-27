@@ -33,6 +33,10 @@ class LeaveTypesTable extends Table
             ->requirePresence('name', 'create')
             ->notEmptyString('name');
 
+        $validator
+            ->boolean('remunerado')
+            ->allowEmptyString('remunerado');
+
         return $validator;
     }
 }

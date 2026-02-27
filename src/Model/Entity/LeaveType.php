@@ -10,5 +10,6 @@ class LeaveType extends Entity
     protected array $_accessible = [
         'code' => true,
         'name' => true,
+        'remunerado' => true,
     ];
 }

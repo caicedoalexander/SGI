@@ -32,6 +32,20 @@ $pipelineOptions = [
 <div class="sgi-page-header d-flex justify-content-between align-items-center">
     <span class="sgi-page-title"><?= $pageTitle ?></span>
     <div class="d-flex gap-2">
+        <?php if (!empty($userPermissions['dian_crosschecks']['can_create'])): ?>
+        <?= $this->Html->link(
+            '<i class="bi bi-arrow-left-right me-1"></i>Cruce DIAN',
+            ['controller' => 'DianCrosschecks', 'action' => 'add'],
+            ['class' => 'btn btn-outline-warning', 'escape' => false]
+        ) ?>
+        <?php endif; ?>
+        <?php if (!empty($userPermissions['dian_crosschecks']['can_view'])): ?>
+        <?= $this->Html->link(
+            '<i class="bi bi-clipboard-data me-1"></i>Cruces',
+            ['controller' => 'DianCrosschecks', 'action' => 'index'],
+            ['class' => 'btn btn-outline-secondary', 'escape' => false]
+        ) ?>
+        <?php endif; ?>
         <?= $this->Html->link(
             '<i class="bi bi-file-earmark-excel me-1"></i>Exportar',
             ['action' => 'export'],

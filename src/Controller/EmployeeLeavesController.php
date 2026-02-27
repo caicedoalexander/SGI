@@ -3,6 +3,8 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use App\Service\LeaveSignatureService;
+use Cake\I18n\Date;
 use Cake\ORM\TableRegistry;
 use DateTime;
 
@@ -63,9 +65,45 @@ class EmployeeLeavesController extends AppController
             $data = $this->request->getData();
             $data['requested_by'] = $user->id;
             $data['status'] = 'pendiente';
+            $data['fecha_diligenciamiento'] = Date::now()->format('Y-m-d');
+
+            // Handle remunerado logic: if leave type forces remunerado, override
+            if (!empty($data['leave_type_id'])) {
+                $leaveType = $this->EmployeeLeaves->LeaveTypes->get($data['leave_type_id']);
+                if ($leaveType->remunerado) {
+                    $data['remunerado'] = true;
+                }
+            }
+            // Default remunerado=true for 'Por horas' if not explicitly set
+            if (($data['horario'] ?? '') === 'Por horas' && !isset($data['remunerado'])) {
+                $data['remunerado'] = true;
+            }
 
             $employeeLeave = $this->EmployeeLeaves->patchEntity($employeeLeave, $data);
             if ($this->EmployeeLeaves->save($employeeLeave)) {
+                // Process signature
+                $signatureService = new LeaveSignatureService();
+                $firmaPath = null;
+
+                // Try file upload first
+                $firmaFile = $this->request->getUploadedFile('firma_file');
+                if ($firmaFile && $firmaFile->getError() === UPLOAD_ERR_OK) {
+                    $firmaPath = $signatureService->saveFromUpload($employeeLeave->id, $firmaFile, $user->id);
+                }
+
+                // Fall back to base64 canvas
+                if (!$firmaPath) {
+                    $firmaBase64 = $this->request->getData('firma_base64');
+                    if (!empty($firmaBase64)) {
+                        $firmaPath = $signatureService->saveFromBase64($employeeLeave->id, $firmaBase64, $user->id);
+                    }
+                }
+
+                if ($firmaPath) {
+                    $employeeLeave->firma_path = $firmaPath;
+                    $this->EmployeeLeaves->save($employeeLeave);
+                }
+
                 $this->Flash->success(__('La solicitud de permiso ha sido creada.'));
 
                 return $this->redirect(['action' => 'index']);
@@ -79,7 +117,14 @@ class EmployeeLeavesController extends AppController
         ])->all();
         $leaveTypes = $this->EmployeeLeaves->LeaveTypes->find('list')->all();
 
-        $this->set(compact('employeeLeave', 'employees', 'leaveTypes'));
+        // Build leave types data with remunerado info for JS
+        $leaveTypesData = $this->EmployeeLeaves->LeaveTypes->find()
+            ->select(['id', 'remunerado'])
+            ->all()
+            ->combine('id', 'remunerado')
+            ->toArray();
+
+        $this->set(compact('employeeLeave', 'employees', 'leaveTypes', 'leaveTypesData'));
     }
 
     public function approve($id = null)

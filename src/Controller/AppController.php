@@ -44,6 +44,7 @@ class AppController extends Controller
         'LeaveTypes' => 'leave_types',
         'OrganizacionesTemporales' => 'organizaciones_temporales',
         'EmployeeNovedades' => 'employee_novedades',
+        'DianCrosschecks' => 'dian_crosschecks',
     ];
 
     /**

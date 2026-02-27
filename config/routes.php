@@ -121,6 +121,10 @@ return function (RouteBuilder $routes): void {
 
         // Employee novedades routes
         $builder->connect(
+            '/employee-novedades',
+            ['controller' => 'EmployeeNovedades', 'action' => 'index']
+        );
+        $builder->connect(
             '/employees/{employeeId}/novedades/add',
             ['controller' => 'EmployeeNovedades', 'action' => 'add'],
             ['employeeId' => '\d+', 'pass' => ['employeeId']]

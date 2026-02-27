@@ -27,6 +27,7 @@ $this->assign('title', 'Tipos de Permiso');
                 <tr>
                     <th style="width:120px;">Código</th>
                     <th>Nombre</th>
+                    <th style="width:120px;">Remunerado</th>
                     <th style="width:160px;">Acciones</th>
                 </tr>
             </thead>
@@ -35,6 +36,13 @@ $this->assign('title', 'Tipos de Permiso');
                 <tr>
                     <td><code><?= h($leaveType->code) ?></code></td>
                     <td><?= h($leaveType->name) ?></td>
+                    <td>
+                        <?php if ($leaveType->remunerado): ?>
+                            <span class="badge bg-success">Sí</span>
+                        <?php else: ?>
+                            <span class="badge bg-secondary">No</span>
+                        <?php endif; ?>
+                    </td>
                     <td>
                         <div class="d-flex gap-1">
                             <?php if (!empty($userPermissions['leave_types']['can_edit'])): ?>

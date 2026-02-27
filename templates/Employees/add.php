@@ -122,7 +122,7 @@ $this->assign('title', 'Nuevo Empleado');
                 ]) ?>
             </div>
             <div class="col-md-3 mb-3" id="org-temporal-wrapper" style="display:none">
-                <?= $this->Form->control('organizacion_temporal_id', ['class' => 'form-select', 'label' => ['text' => 'Organización Temporal', 'class' => 'form-label'], 'empty' => '-- Seleccione --']) ?>
+                <?= $this->Form->control('organizacion_temporal_id', ['class' => 'form-select', 'label' => ['text' => 'Organización Temporal', 'class' => 'form-label'], 'empty' => '-- Seleccione --', 'options' => $organizacionesTemporales]) ?>
             </div>
             <div class="col-md-3 mb-3">
                 <?= $this->Form->control('chaleco', ['class' => 'form-control', 'label' => ['text' => 'Chaleco', 'class' => 'form-label'], 'maxlength' => 20]) ?>

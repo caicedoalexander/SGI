@@ -26,7 +26,7 @@ class SystemSettingsService
         return $value;
     }
 
-    public function set(string $key, ?string $value): bool
+    public function set(string $key, ?string $value, string $group = 'general'): bool
     {
         $table = TableRegistry::getTableLocator()->get('SystemSettings');
         $setting = $table->find()
@@ -39,7 +39,7 @@ class SystemSettingsService
             $setting = $table->newEntity([
                 'setting_key' => $key,
                 'setting_value' => $value,
-                'setting_group' => 'general',
+                'setting_group' => $group,
             ]);
         }
 

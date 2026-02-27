@@ -30,6 +30,9 @@ class AuthorizationService
         'system_settings' => 'Configuración del Sistema',
         'employee_leaves' => 'Permisos de Empleados',
         'leave_types' => 'Tipos de Permiso',
+        'organizaciones_temporales' => 'Organizaciones Temporales',
+        'dian_crosschecks' => 'Cruce DIAN',
+        'employee_novedades' => 'Novedades',
     ];
 
     private array $cache = [];

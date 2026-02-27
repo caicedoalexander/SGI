@@ -19,30 +19,46 @@ class SystemSettingsController extends AppController
     public function index()
     {
         $smtpSettings = $this->settingsService->getGroup('smtp');
+        $n8nSettings = $this->settingsService->getGroup('n8n');
 
         if ($this->request->is(['post', 'put'])) {
             $data = $this->request->getData();
-            $smtpKeys = [
-                'smtp_host', 'smtp_port', 'smtp_username', 'smtp_password',
-                'smtp_encryption', 'smtp_from_email', 'smtp_from_name',
-            ];
+            $formType = $data['_form_type'] ?? 'smtp';
 
-            foreach ($smtpKeys as $key) {
-                if (array_key_exists($key, $data)) {
-                    // Don't overwrite password if left empty
-                    if ($key === 'smtp_password' && empty($data[$key])) {
-                        continue;
+            if ($formType === 'smtp') {
+                $smtpKeys = [
+                    'smtp_host', 'smtp_port', 'smtp_username', 'smtp_password',
+                    'smtp_encryption', 'smtp_from_email', 'smtp_from_name',
+                ];
+
+                foreach ($smtpKeys as $key) {
+                    if (array_key_exists($key, $data)) {
+                        if ($key === 'smtp_password' && empty($data[$key])) {
+                            continue;
+                        }
+                        $this->settingsService->set($key, $data[$key] ?: null, 'smtp');
                     }
-                    $this->settingsService->set($key, $data[$key] ?: null);
                 }
-            }
 
-            $this->Flash->success('Configuración SMTP actualizada.');
+                $this->Flash->success('Configuración SMTP actualizada.');
+            } elseif ($formType === 'n8n') {
+                $n8nKeys = [
+                    'n8n_webhook_dian_crosscheck',
+                ];
+
+                foreach ($n8nKeys as $key) {
+                    if (array_key_exists($key, $data)) {
+                        $this->settingsService->set($key, $data[$key] ?: null, 'n8n');
+                    }
+                }
+
+                $this->Flash->success('Configuración n8n actualizada.');
+            }
 
             return $this->redirect(['action' => 'index']);
         }
 
-        $this->set(compact('smtpSettings'));
+        $this->set(compact('smtpSettings', 'n8nSettings'));
     }
 
     public function testSmtp()

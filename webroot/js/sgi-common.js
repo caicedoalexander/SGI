@@ -41,9 +41,9 @@ document.addEventListener('DOMContentLoaded', function () {
         }, 4000);
     });
 
-    // ── Select2 para todos los selects del sistema ──────────────────────────
+    // ── Select2 solo para selects con clase .select2-enable ──────────────────
     if (typeof $ !== 'undefined' && $.fn && $.fn.select2) {
-        $('select.form-select').each(function () {
+        $('select.select2-enable').each(function () {
             var $modal = $(this).closest('.modal');
             $(this).select2({
                 width: '100%',

@@ -122,7 +122,7 @@ $this->assign('title', 'Editar Empleado: ' . $employee->full_name);
                 ]) ?>
             </div>
             <div class="col-md-3 mb-3" id="org-temporal-wrapper" style="<?= ($employee->tipo_contrato ?? '') !== 'Temporal' ? 'display:none' : '' ?>">
-                <?= $this->Form->control('organizacion_temporal_id', ['class' => 'form-select', 'label' => ['text' => 'Organización Temporal', 'class' => 'form-label'], 'empty' => '-- Seleccione --']) ?>
+                <?= $this->Form->control('organizacion_temporal_id', ['class' => 'form-select', 'label' => ['text' => 'Organización Temporal', 'class' => 'form-label'], 'empty' => '-- Seleccione --', 'options' => $organizacionesTemporales]) ?>
             </div>
             <div class="col-md-3 mb-3">
                 <?= $this->Form->control('chaleco', ['class' => 'form-control', 'label' => ['text' => 'Chaleco', 'class' => 'form-label'], 'maxlength' => 20]) ?>
@@ -138,6 +138,7 @@ document.addEventListener('DOMContentLoaded', function() {
         orgWrapper.style.display = tipoContrato.value === 'Temporal' ? '' : 'none';
     }
     tipoContrato.addEventListener('change', toggleOrg);
+    toggleOrg();
 });
 <?php $this->Html->scriptEnd(); ?>
 

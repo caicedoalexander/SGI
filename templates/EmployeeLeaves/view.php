@@ -62,6 +62,44 @@ $statusBadges = [
                 <span class="sgi-data-label">Fecha Fin</span>
                 <span class="sgi-data-value"><?= $employeeLeave->end_date?->format('d/m/Y') ?: '—' ?></span>
             </div>
+            <?php if ($employeeLeave->fecha_permiso): ?>
+            <div class="sgi-data-row">
+                <span class="sgi-data-label">Fecha del Permiso</span>
+                <span class="sgi-data-value"><?= $employeeLeave->fecha_permiso->format('d/m/Y') ?></span>
+            </div>
+            <?php endif; ?>
+            <?php if ($employeeLeave->horario): ?>
+            <div class="sgi-data-row">
+                <span class="sgi-data-label">Horario</span>
+                <span class="sgi-data-value"><?= h($employeeLeave->horario) ?></span>
+            </div>
+            <?php endif; ?>
+            <?php if ($employeeLeave->horario === 'Por horas'): ?>
+            <div class="sgi-data-row">
+                <span class="sgi-data-label">Hora Salida</span>
+                <span class="sgi-data-value"><?= h($employeeLeave->hora_salida) ?: '—' ?></span>
+            </div>
+            <div class="sgi-data-row">
+                <span class="sgi-data-label">Hora Entrada</span>
+                <span class="sgi-data-value"><?= h($employeeLeave->hora_entrada) ?: '—' ?></span>
+            </div>
+            <?php endif; ?>
+            <?php if ($employeeLeave->horario === 'Por días'): ?>
+            <div class="sgi-data-row">
+                <span class="sgi-data-label">Cantidad de Días</span>
+                <span class="sgi-data-value"><?= h($employeeLeave->cantidad_dias) ?: '—' ?></span>
+            </div>
+            <?php endif; ?>
+            <div class="sgi-data-row">
+                <span class="sgi-data-label">Remunerado</span>
+                <span class="sgi-data-value">
+                    <?php if ($employeeLeave->remunerado): ?>
+                        <span class="badge bg-success">Sí</span>
+                    <?php else: ?>
+                        <span class="badge bg-secondary">No</span>
+                    <?php endif; ?>
+                </span>
+            </div>
         </div>
         <div class="col-md-6">
             <div class="sgi-section-title">Gestión</div>
@@ -77,8 +115,24 @@ $statusBadges = [
                 <span class="sgi-data-label">Fecha Aprobación</span>
                 <span class="sgi-data-value"><?= $employeeLeave->approved_at ? $employeeLeave->approved_at->format('d/m/Y H:i') : '—' ?></span>
             </div>
+            <?php if ($employeeLeave->fecha_diligenciamiento): ?>
+            <div class="sgi-data-row">
+                <span class="sgi-data-label">Fecha Diligenciamiento</span>
+                <span class="sgi-data-value"><?= $employeeLeave->fecha_diligenciamiento->format('d/m/Y') ?></span>
+            </div>
+            <?php endif; ?>
         </div>
     </div>
+
+    <?php if ($employeeLeave->firma_path): ?>
+    <div style="border-top:1px solid var(--border-color);">
+        <div class="sgi-section-title">Firma del Solicitante</div>
+        <div style="padding:.25rem 1.25rem .875rem;">
+            <img src="<?= $this->Url->build('/' . $employeeLeave->firma_path) ?>" alt="Firma"
+                 style="max-width:400px;max-height:150px;border:1px solid var(--border-color);">
+        </div>
+    </div>
+    <?php endif; ?>
 
     <?php if ($employeeLeave->observations): ?>
     <div style="border-top:1px solid var(--border-color);">

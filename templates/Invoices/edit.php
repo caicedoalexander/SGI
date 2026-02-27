@@ -176,8 +176,8 @@ $ps = $pipelineBadgeMap[$currentStatus] ?? ['Desconocido', 'bg-dark'];
                     <?= $this->Form->control('provider_id', array_merge(
                         ['label' => false, 'options' => $providers, 'empty' => '-- Seleccione --'],
                         $canEdit('provider_id')
-                            ? ['class' => 'form-select']
-                            : ['class' => 'form-select', 'disabled' => true]
+                            ? ['class' => 'form-select select2-enable']
+                            : ['class' => 'form-select select2-enable', 'disabled' => true]
                     )) ?>
                 </div>
             </div>

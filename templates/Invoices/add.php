@@ -71,7 +71,7 @@ $documentTypes = [
                 </div>
                 <div class="col-md-3">
                     <?= $this->Form->control('provider_id', [
-                        'class'   => 'form-select',
+                        'class'   => 'form-select select2-enable',
                         'label'   => ['text' => 'Proveedor', 'class' => 'form-label'],
                         'options' => $providers,
                         'empty'   => '-- Seleccione --',

@@ -2,6 +2,7 @@
 /**
  * @var \App\View\AppView $this
  * @var array $smtpSettings
+ * @var array $n8nSettings
  */
 $this->assign('title', 'Configuración del Sistema');
 ?>
@@ -25,6 +26,7 @@ $this->assign('title', 'Configuración del Sistema');
     </div>
     <div class="card-body p-4">
         <?= $this->Form->create(null, ['url' => ['action' => 'index']]) ?>
+        <input type="hidden" name="_form_type" value="smtp">
 
         <div class="row g-3">
             <div class="col-md-6">
@@ -87,6 +89,43 @@ $this->assign('title', 'Configuración del Sistema');
         <div class="mt-3">
             <button type="submit" class="btn btn-outline-secondary">
                 <i class="bi bi-send me-1"></i>Probar Conexión SMTP
+            </button>
+        </div>
+
+        <?= $this->Form->end() ?>
+    </div>
+</div>
+
+<div class="card card-primary mb-4">
+    <div class="card-header d-flex align-items-center gap-3">
+        <div class="d-flex align-items-center justify-content-center flex-shrink-0"
+             style="width:36px;height:36px;background:var(--secondary-color);color:#fff;font-size:.9rem;">
+            <i class="bi bi-diagram-3"></i>
+        </div>
+        <div>
+            <div style="font-size:.95rem;font-weight:700;color:#111;">Integración n8n</div>
+            <div style="font-size:.72rem;color:#aaa;margin-top:.1rem;">
+                URLs de webhooks para automatizaciones n8n
+            </div>
+        </div>
+    </div>
+    <div class="card-body p-4">
+        <?= $this->Form->create(null, ['url' => ['action' => 'index']]) ?>
+        <input type="hidden" name="_form_type" value="n8n">
+
+        <div class="row g-3">
+            <div class="col-12">
+                <label class="form-label">Webhook Cruce DIAN</label>
+                <input type="url" name="n8n_webhook_dian_crosscheck" class="form-control"
+                       value="<?= h($n8nSettings['n8n_webhook_dian_crosscheck'] ?? '') ?>"
+                       placeholder="https://n8n.example.com/webhook/dian-crosscheck">
+                <small class="text-muted">URL del webhook n8n para procesar archivos Excel de cruce DIAN</small>
+            </div>
+        </div>
+
+        <div class="d-flex gap-2 pt-3 mt-3" style="border-top:1px solid var(--border-color);">
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-save me-1"></i>Guardar Configuración n8n
             </button>
         </div>
 

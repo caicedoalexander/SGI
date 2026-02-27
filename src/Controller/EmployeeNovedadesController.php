@@ -9,6 +9,45 @@ use Cake\ORM\TableRegistry;
 
 class EmployeeNovedadesController extends AppController
 {
+    /**
+     * List all active novedades.
+     *
+     * @return void
+     */
+    public function index(): void
+    {
+        $query = $this->EmployeeNovedades->find()
+            ->contain(['Employees' => ['EmployeeStatuses'], 'CreatedByUsers'])
+            ->where(['EmployeeNovedades.active' => true])
+            ->order(['EmployeeNovedades.created' => 'DESC']);
+
+        // Filter by novedad type
+        $typeFilter = $this->request->getQuery('type');
+        if ($typeFilter) {
+            $query->where(['EmployeeNovedades.novedad_type' => $typeFilter]);
+        }
+
+        // Filter by employee status
+        $statusFilter = $this->request->getQuery('employee_status');
+        if ($statusFilter) {
+            $query->where(['Employees.employee_status_id' => $statusFilter]);
+        }
+
+        $this->paginate = ['limit' => 15, 'maxLimit' => 15];
+        $novedades = $this->paginate($query);
+
+        $novedadTypes = array_combine(
+            EmployeeNovedadesTable::NOVEDAD_TYPES,
+            EmployeeNovedadesTable::NOVEDAD_TYPES,
+        );
+
+        $employeeStatuses = TableRegistry::getTableLocator()->get('EmployeeStatuses')
+            ->find('list')
+            ->all();
+
+        $this->set(compact('novedades', 'novedadTypes', 'employeeStatuses', 'typeFilter', 'statusFilter'));
+    }
+
     public function add($employeeId = null)
     {
         $employeesTable = TableRegistry::getTableLocator()->get('Employees');
