@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace App\Model\Table;
 
+use Cake\ORM\RulesChecker;
 use Cake\ORM\Table;
 use Cake\Validation\Validator;
 
@@ -17,6 +18,21 @@ class LeaveTypesTable extends Table
         $this->setPrimaryKey('id');
 
         $this->addBehavior('Timestamp');
+
+        $this->belongsTo('LeaveDocumentTemplates', [
+            'foreignKey' => 'leave_document_template_id',
+            'joinType' => 'LEFT',
+        ]);
+    }
+
+    public function buildRules(RulesChecker $rules): RulesChecker
+    {
+        $rules->add($rules->existsIn('leave_document_template_id', 'LeaveDocumentTemplates'), [
+            'errorField' => 'leave_document_template_id',
+            'allowNullableNulls' => true,
+        ]);
+
+        return $rules;
     }
 
     public function validationDefault(Validator $validator): Validator

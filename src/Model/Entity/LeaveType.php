@@ -11,5 +11,6 @@ class LeaveType extends Entity
         'code' => true,
         'name' => true,
         'remunerado' => true,
+        'leave_document_template_id' => true,
     ];
 }

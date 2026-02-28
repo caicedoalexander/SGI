@@ -53,7 +53,7 @@ return [
         'namespace' => 'App',
         'encoding' => env('APP_ENCODING', 'UTF-8'),
         'defaultLocale' => env('APP_DEFAULT_LOCALE', 'en_US'),
-        'defaultTimezone' => env('APP_DEFAULT_TIMEZONE', 'UTC'),
+        'defaultTimezone' => env('APP_DEFAULT_TIMEZONE', 'America/Bogota'),
         'base' => false,
         'dir' => 'src',
         'webroot' => 'webroot',

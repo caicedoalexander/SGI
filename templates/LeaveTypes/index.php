@@ -28,6 +28,7 @@ $this->assign('title', 'Tipos de Permiso');
                     <th style="width:120px;">Código</th>
                     <th>Nombre</th>
                     <th style="width:120px;">Remunerado</th>
+                    <th>Plantilla</th>
                     <th style="width:160px;">Acciones</th>
                 </tr>
             </thead>
@@ -41,6 +42,13 @@ $this->assign('title', 'Tipos de Permiso');
                             <span class="badge bg-success">Sí</span>
                         <?php else: ?>
                             <span class="badge bg-secondary">No</span>
+                        <?php endif; ?>
+                    </td>
+                    <td>
+                        <?php if (!empty($leaveType->leave_document_template)): ?>
+                            <span class="text-muted"><i class="bi bi-file-earmark-pdf me-1"></i><?= h($leaveType->leave_document_template->name) ?></span>
+                        <?php else: ?>
+                            <span class="text-muted">—</span>
                         <?php endif; ?>
                     </td>
                     <td>

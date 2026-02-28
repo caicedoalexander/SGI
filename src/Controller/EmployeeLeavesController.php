@@ -48,7 +48,7 @@ class EmployeeLeavesController extends AppController
     {
         $employeeLeave = $this->EmployeeLeaves->get($id, contain: [
             'Employees',
-            'LeaveTypes',
+            'LeaveTypes.LeaveDocumentTemplates',
             'ApprovedByUsers',
             'RequestedByUsers',
         ]);
@@ -56,8 +56,9 @@ class EmployeeLeavesController extends AppController
         $user = $this->Authentication->getIdentity()->getOriginalData();
         $canApprove = $this->_canApproveLeave($user, $employeeLeave);
 
-        $templatesTable = TableRegistry::getTableLocator()->get('LeaveDocumentTemplates');
-        $hasActiveTemplate = $templatesTable->exists(['is_active' => true]);
+        $hasActiveTemplate = !empty($employeeLeave->leave_type->leave_document_template_id)
+            && !empty($employeeLeave->leave_type->leave_document_template)
+            && $employeeLeave->leave_type->leave_document_template->is_active;
 
         $this->set(compact('employeeLeave', 'canApprove', 'hasActiveTemplate'));
     }
@@ -66,13 +67,14 @@ class EmployeeLeavesController extends AppController
     {
         $this->autoRender = false;
 
-        $templatesTable = TableRegistry::getTableLocator()->get('LeaveDocumentTemplates');
-        $template = $templatesTable->find()
-            ->where(['is_active' => true])
-            ->first();
+        $leave = $this->EmployeeLeaves->get($id, contain: [
+            'LeaveTypes.LeaveDocumentTemplates',
+        ]);
 
-        if (!$template) {
-            $this->Flash->error('No hay una plantilla de documento activa.');
+        $template = $leave->leave_type->leave_document_template ?? null;
+
+        if (!$template || !$template->is_active) {
+            $this->Flash->error('Este tipo de permiso no tiene una plantilla de documento activa asignada.');
 
             return $this->redirect(['action' => 'view', $id]);
         }

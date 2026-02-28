@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Controller\Trait\ExcelCatalogTrait;
+use Cake\ORM\TableRegistry;
 
 class LeaveTypesController extends AppController
 {
@@ -11,7 +12,9 @@ class LeaveTypesController extends AppController
 
     public function index()
     {
-        $leaveTypes = $this->paginate($this->LeaveTypes->find());
+        $query = $this->LeaveTypes->find()
+            ->contain(['LeaveDocumentTemplates']);
+        $leaveTypes = $this->paginate($query);
         $this->set(compact('leaveTypes'));
     }
 
@@ -27,7 +30,8 @@ class LeaveTypesController extends AppController
             }
             $this->Flash->error(__('No se pudo guardar. Intente de nuevo.'));
         }
-        $this->set(compact('leaveType'));
+        $documentTemplates = $this->_getDocumentTemplatesList();
+        $this->set(compact('leaveType', 'documentTemplates'));
     }
 
     public function edit($id = null)
@@ -42,7 +46,18 @@ class LeaveTypesController extends AppController
             }
             $this->Flash->error(__('No se pudo actualizar. Intente de nuevo.'));
         }
-        $this->set(compact('leaveType'));
+        $documentTemplates = $this->_getDocumentTemplatesList();
+        $this->set(compact('leaveType', 'documentTemplates'));
+    }
+
+    private function _getDocumentTemplatesList(): array
+    {
+        $templatesTable = TableRegistry::getTableLocator()->get('LeaveDocumentTemplates');
+
+        return $templatesTable->find('list', valueField: 'name')
+            ->where(['is_active' => true])
+            ->order(['name' => 'ASC'])
+            ->toArray();
     }
 
     public function delete($id = null)

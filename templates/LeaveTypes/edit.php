@@ -2,6 +2,7 @@
 /**
  * @var \App\View\AppView $this
  * @var \App\Model\Entity\LeaveType $leaveType
+ * @var array $documentTemplates
  */
 $this->assign('title', 'Editar Tipo de Permiso');
 ?>
@@ -26,6 +27,16 @@ $this->assign('title', 'Editar Tipo de Permiso');
             <div class="col-md-8">
                 <label class="form-label">Nombre</label>
                 <?= $this->Form->control('name', ['label' => false, 'class' => 'form-control']) ?>
+            </div>
+            <div class="col-md-12">
+                <label class="form-label">Plantilla de documento</label>
+                <?= $this->Form->control('leave_document_template_id', [
+                    'label' => false,
+                    'class' => 'form-select',
+                    'options' => $documentTemplates,
+                    'empty' => '— Sin plantilla —',
+                ]) ?>
+                <div class="form-text">Plantilla usada para exportar permisos de este tipo como PDF.</div>
             </div>
             <div class="col-md-12">
                 <div class="form-check">
