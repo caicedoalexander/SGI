@@ -141,6 +141,25 @@ return function (RouteBuilder $routes): void {
             ['id' => '\d+', 'pass' => ['id']]
         );
 
+        // Leave document template management
+        $builder->connect(
+            '/leave-document-templates/save-fields/{id}',
+            ['controller' => 'LeaveDocumentTemplates', 'action' => 'saveFields'],
+            ['id' => '\d+', 'pass' => ['id']]
+        );
+        $builder->connect(
+            '/leave-document-templates/preview/{id}',
+            ['controller' => 'LeaveDocumentTemplates', 'action' => 'preview'],
+            ['id' => '\d+', 'pass' => ['id']]
+        );
+
+        // Employee leave PDF export
+        $builder->connect(
+            '/employee-leaves/export-pdf/{id}',
+            ['controller' => 'EmployeeLeaves', 'action' => 'exportPdf'],
+            ['id' => '\d+', 'pass' => ['id']]
+        );
+
         // Employee document management routes
         $builder->connect(
             '/employees/add-folder/{employeeId}',

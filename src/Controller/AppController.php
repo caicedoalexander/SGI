@@ -45,6 +45,7 @@ class AppController extends Controller
         'OrganizacionesTemporales' => 'organizaciones_temporales',
         'EmployeeNovedades' => 'employee_novedades',
         'DianCrosschecks' => 'dian_crosschecks',
+        'LeaveDocumentTemplates' => 'leave_types',
     ];
 
     /**
@@ -53,9 +54,9 @@ class AppController extends Controller
     protected function _actionToPermission(string $action): string
     {
         return match ($action) {
-            'index', 'view', 'export', 'all', 'rejected' => 'view',
+            'index', 'view', 'export', 'all', 'rejected', 'exportPdf', 'preview' => 'view',
             'add', 'addFolder', 'uploadDocument', 'import' => 'add',
-            'edit', 'advanceStatus', 'addObservation', 'testSmtp', 'approve', 'reject', 'generateApprovalLink', 'deactivate' => 'edit',
+            'edit', 'advanceStatus', 'addObservation', 'testSmtp', 'approve', 'reject', 'generateApprovalLink', 'deactivate', 'saveFields' => 'edit',
             'delete', 'deleteDocument' => 'delete',
             default => 'view',
         };

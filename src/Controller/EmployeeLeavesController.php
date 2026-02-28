@@ -3,7 +3,9 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use App\Service\LeaveDocumentService;
 use App\Service\LeaveSignatureService;
+use Cake\Http\Response;
 use Cake\I18n\Date;
 use Cake\ORM\TableRegistry;
 use DateTime;
@@ -54,7 +56,34 @@ class EmployeeLeavesController extends AppController
         $user = $this->Authentication->getIdentity()->getOriginalData();
         $canApprove = $this->_canApproveLeave($user, $employeeLeave);
 
-        $this->set(compact('employeeLeave', 'canApprove'));
+        $templatesTable = TableRegistry::getTableLocator()->get('LeaveDocumentTemplates');
+        $hasActiveTemplate = $templatesTable->exists(['is_active' => true]);
+
+        $this->set(compact('employeeLeave', 'canApprove', 'hasActiveTemplate'));
+    }
+
+    public function exportPdf($id = null): ?Response
+    {
+        $this->autoRender = false;
+
+        $templatesTable = TableRegistry::getTableLocator()->get('LeaveDocumentTemplates');
+        $template = $templatesTable->find()
+            ->where(['is_active' => true])
+            ->first();
+
+        if (!$template) {
+            $this->Flash->error('No hay una plantilla de documento activa.');
+
+            return $this->redirect(['action' => 'view', $id]);
+        }
+
+        $service = new LeaveDocumentService();
+        $pdfContent = $service->generatePdf((int)$id, (int)$template->id);
+
+        return $this->response
+            ->withType('application/pdf')
+            ->withHeader('Content-Disposition', 'inline; filename="permiso_' . $id . '.pdf"')
+            ->withStringBody($pdfContent);
     }
 
     public function add()

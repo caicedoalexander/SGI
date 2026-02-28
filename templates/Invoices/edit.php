@@ -659,13 +659,16 @@ $hasSoportes = $showUploadSection || !empty($documentsByStatus);
     if (chat) chat.scrollTop = chat.scrollHeight;
 
     // Auto-resize textareas
+    // Con box-sizing:border-box de Bootstrap: height='0' fuerza recálculo correcto,
+    // +2 compensa los bordes (1px top + 1px bottom) que scrollHeight excluye.
     function syncHeight(el) {
-        el.style.height = 'auto';
-        el.style.height = el.scrollHeight + 'px';
+        el.style.height = '0px';
+        el.style.height = (el.scrollHeight + 2) + 'px';
     }
-    document.querySelectorAll('.auto-resize').forEach(function(el) {
-        el.style.overflow = 'hidden';
-        el.style.resize   = 'none';
+    document.querySelectorAll('textarea.auto-resize').forEach(function(el) {
+        el.style.overflow  = 'hidden';
+        el.style.resize    = 'none';
+        el.style.minHeight = '0px';
         syncHeight(el);
         el.addEventListener('input', function() { syncHeight(this); });
     });

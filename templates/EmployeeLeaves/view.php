@@ -3,6 +3,7 @@
  * @var \App\View\AppView $this
  * @var \App\Model\Entity\EmployeeLeave $employeeLeave
  * @var bool $canApprove
+ * @var bool $hasActiveTemplate
  */
 $this->assign('title', 'Detalle de Permiso');
 
@@ -15,11 +16,20 @@ $statusBadges = [
 
 <div class="sgi-page-header d-flex justify-content-between align-items-center">
     <span class="sgi-page-title">Detalle de Permiso</span>
-    <?= $this->Html->link(
-        '<i class="bi bi-arrow-left me-1"></i>Volver',
-        ['action' => 'index'],
-        ['class' => 'btn btn-outline-dark btn-sm', 'escape' => false]
-    ) ?>
+    <div class="d-flex gap-2">
+        <?php if (!empty($hasActiveTemplate)): ?>
+        <?= $this->Html->link(
+            '<i class="bi bi-file-earmark-pdf me-1"></i>Exportar PDF',
+            ['action' => 'exportPdf', $employeeLeave->id],
+            ['class' => 'btn btn-outline-danger btn-sm', 'escape' => false, 'target' => '_blank']
+        ) ?>
+        <?php endif; ?>
+        <?= $this->Html->link(
+            '<i class="bi bi-arrow-left me-1"></i>Volver',
+            ['action' => 'index'],
+            ['class' => 'btn btn-outline-dark btn-sm', 'escape' => false]
+        ) ?>
+    </div>
 </div>
 
 <div class="card card-primary mb-4">

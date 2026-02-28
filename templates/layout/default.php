@@ -24,6 +24,9 @@ $currentController = $this->request->getParam('controller');
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css">
     <?= $this->Html->css('styles') ?>
+    <?php if ($this->request->getAttribute('csrfToken')): ?>
+    <meta name="csrfToken" content="<?= $this->request->getAttribute('csrfToken') ?>">
+    <?php endif; ?>
     <?= $this->fetch('meta') ?>
     <?= $this->fetch('css') ?>
     <style>
@@ -133,6 +136,7 @@ $currentController = $this->request->getParam('controller');
                 $rrhhItems = array_filter([
                     $canView('employees') ? 'employees' : null,
                     $canView('employee_leaves') ? 'employee_leaves' : null,
+                    $canView('leave_types') ? 'leave_types_templates' : null,
                 ]);
                 if (!empty($rrhhItems)): ?>
                 <li class="nav-heading">RRHH</li>
@@ -151,6 +155,15 @@ $currentController = $this->request->getParam('controller');
                         '<i class="bi bi-calendar-check me-2"></i>Permisos',
                         ['controller' => 'EmployeeLeaves', 'action' => 'index'],
                         ['class' => $navLink('EmployeeLeaves'), 'escape' => false]
+                    ) ?>
+                </li>
+                <?php endif; ?>
+                <?php if ($canView('leave_types')): ?>
+                <li class="nav-item">
+                    <?= $this->Html->link(
+                        '<i class="bi bi-file-earmark-ruled me-2"></i>Plantillas Documento',
+                        ['controller' => 'LeaveDocumentTemplates', 'action' => 'index'],
+                        ['class' => $navLink('LeaveDocumentTemplates'), 'escape' => false]
                     ) ?>
                 </li>
                 <?php endif; ?>
